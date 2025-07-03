@@ -1,36 +1,211 @@
+/* Modern & Responsive Stylesheet with Auto Dark Mode */
+
+:root {
+    --bg-color: #f0f2f5;
+    --card-bg-color: #ffffff;
+    --text-color: #1c1e21;
+    --secondary-text-color: #65676b;
+    --primary-color: #0d6efd;
+    --primary-hover-color: #0b5ed7;
+    --accent-color: #6c757d;
+    --accent-hover-color: #5c636a;
+    --border-color: #d1d5db;
+    --success-bg-color: #d1e7dd;
+    --success-text-color: #0f5132;
+    --success-border-color: #badbcc;
+    --danger-bg-color: #f8d7da;
+    --danger-text-color: #842029;
+    --danger-border-color: #f5c2c7;
+    --info-bg-color: #cff4fc;
+    --info-text-color: #055160;
+    --info-border-color: #b6effb;
+    --shadow-color: rgba(0, 0, 0, 0.1);
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg-color: #18191a;
+        --card-bg-color: #242526;
+        --text-color: #e4e6eb;
+        --secondary-text-color: #b0b3b8;
+        --primary-color: #2d81f7;
+        --primary-hover-color: #1d6fe6;
+        --border-color: #444950;
+        --success-bg-color: #1c3c31;
+        --success-text-color: #7ee2b8;
+        --success-border-color: #2c5f49;
+        --danger-bg-color: #482329;
+        --danger-text-color: #f5b9c1;
+        --danger-border-color: #6b333c;
+        --info-bg-color: #133946;
+        --info-text-color: #9eeaf9;
+        --info-border-color: #1e6074;
+        --shadow-color: rgba(0, 0, 0, 0.3);
+    }
+}
+
 body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    background-color: #f0f2f5;
-    color: #333;
-    max-width: 600px;
-    margin: 20px auto;
-    padding: 15px;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    line-height: 1.6;
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
 }
-h1, h2 { color: #1877f2; }
-.question-block {
-    margin-bottom: 20px;
-    background-color: #fff;
-    padding: 15px;
-    border-radius: 8px;
+
+.container {
+    max-width: 700px;
+    width: 100%;
 }
-.answers label { display: block; margin: 8px 0; padding: 10px; border-radius: 5px; border: 1px solid #ddd; cursor: pointer; }
-.answers label:hover { background-color: #f7f7f7; }
+
+h1, h2, h3 {
+    color: var(--primary-color);
+    margin-top: 0;
+}
+
+p {
+    color: var(--secondary-text-color);
+}
+
+.creator-block, .question-block {
+    background-color: var(--card-bg-color);
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 25px;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 4px 12px var(--shadow-color);
+}
+
+input[type=text], textarea {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    box-sizing: border-box;
+}
+
+textarea {
+    height: 80px;
+    resize: vertical;
+}
+
 button, a.button-style {
-    background-color: #1877f2; color: white; border: none; padding: 10px 20px;
-    border-radius: 5px; cursor: pointer; font-size: 16px; margin-top: 10px; text-decoration: none; display: inline-block;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    margin-top: 10px;
+    text-decoration: none;
+    display: inline-block;
+    transition: background-color 0.2s ease, transform 0.1s ease;
 }
-button:hover, a.button-style:hover { background-color: #166fe5; }
-button:disabled { background-color: #ccc; cursor: not-allowed; }
-.answers label.correct { background-color: #d4edda; color: #155724; border-color: #c3e6cb; }
-.answers label.incorrect { background-color: #f8d7da; color: #721c24; border-color: #f5c6cb; }
-#quiz-header { display: flex; justify-content: space-between; align-items: center; }
-#timer { font-size: 1.2em; font-weight: bold; color: #1877f2; }
-.explanation-box { margin-top: 20px; padding: 15px; background-color: #e9f5ff; border: 1px solid #bce8f1; border-radius: 5px; }
-.explanation-box h3 { margin-top: 0; color: #31708f; }
-#results-summary table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-#results-summary th, #results-summary td { padding: 10px; border: 1px solid #ddd; text-align: left; }
-#results-summary th { background-color: #f2f2f2; }
-.result-correct { color: green; font-weight: bold; }
-.result-incorrect { color: red; font-weight: bold; }
+
+button:hover, a.button-style:hover {
+    background-color: var(--primary-hover-color);
+    transform: translateY(-1px);
+}
+
+button:disabled {
+    background-color: var(--accent-color);
+    cursor: not-allowed;
+    transform: none;
+}
+
+a.secondary-button {
+    background-color: var(--accent-color);
+}
+
+a.secondary-button:hover {
+    background-color: var(--accent-hover-color);
+}
+
+.answers label {
+    display: block;
+    margin: 8px 0;
+    padding: 15px;
+    border-radius: 8px;
+    border: 2px solid var(--border-color);
+    cursor: pointer;
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.answers label:hover {
+    border-color: var(--primary-color);
+    background-color: var(--bg-color);
+}
+
+.answers label.correct {
+    background-color: var(--success-bg-color);
+    color: var(--success-text-color);
+    border-color: var(--success-border-color);
+}
+
+.answers label.incorrect {
+    background-color: var(--danger-bg-color);
+    color: var(--danger-text-color);
+    border-color: var(--danger-border-color);
+}
+
+#share-link-container {
+    display: none;
+    margin-top: 20px;
+    padding: 20px;
+    border-radius: 12px;
+    background-color: var(--card-bg-color);
+    border: 1px solid var(--border-color);
+}
+
+#quiz-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+#timer {
+    font-size: 1.5em;
+    font-weight: bold;
+    color: var(--primary-color);
+    background-color: var(--card-bg-color);
+    padding: 5px 15px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+}
+
+.explanation-box {
+    margin-top: 20px;
+    padding: 15px;
+    background-color: var(--info-bg-color);
+    color: var(--info-text-color);
+    border: 1px solid var(--info-border-color);
+    border-radius: 8px;
+}
+.explanation-box h3 {
+    margin-top: 0;
+    color: var(--info-text-color);
+}
+
+#results-summary table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+#results-summary th, #results-summary td {
+    padding: 12px;
+    border: 1px solid var(--border-color);
+    text-align: left;
+}
+#results-summary th {
+    background-color: var(--card-bg-color);
+}
+.result-correct { color: var(--success-text-color); font-weight: bold; }
+.result-incorrect { color: var(--danger-text-color); font-weight: bold; }
