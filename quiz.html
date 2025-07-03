@@ -7,19 +7,36 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="quiz-view">
-        <div id="quiz-header"><h2 id="question-counter"></h2><div id="timer">0s</div></div>
-        <div class="question-block"><div class="question" id="question-text"></div><div class="answers" id="answer-options"></div></div>
-        <div id="explanation-box" style="display: none;"><h3>Explanation</h3><p id="explanation-text"></p></div>
-        <button id="submit-btn">Submit Answer</button><button id="next-btn" style="display: none;">Next Question</button>
-    </div>
-    <div id="results-view" style="display: none;">
-        <h2>Quiz Complete!</h2><p id="final-score"></p><p id="total-time"></p><h3>Performance Summary</h3>
-        <div id="results-summary"></div><a href="index.html" class="button-style">Create a New Quiz</a>
-    </div>
-    <div id="error-container" style="display: none;">
-        <h1>Oops!</h1><p>Could not load the quiz. The quiz data may have expired or the link is incorrect.</p>
-        <a href="index.html">Create a new quiz</a>
+    <div class="container">
+        <div id="quiz-view">
+            <div id="quiz-header">
+                <h2 id="question-counter"></h2>
+                <div id="timer">0s</div>
+            </div>
+            <div class="question-block">
+                <div class="question" id="question-text"></div>
+                <div class="answers" id="answer-options"></div>
+            </div>
+            <div id="explanation-box" style="display: none;">
+                <h3>Explanation</h3>
+                <p id="explanation-text"></p>
+            </div>
+            <button id="submit-btn">Submit Answer</button>
+            <button id="next-btn" style="display: none;">Next Question</button>
+        </div>
+        <div id="results-view" style="display: none;">
+            <h2>Quiz Complete!</h2>
+            <p id="final-score"></p>
+            <p id="total-time"></p>
+            <h3>Performance Summary</h3>
+            <div id="results-summary"></div>
+            <a href="index.html" class="button-style secondary-button">Create a New Quiz</a>
+        </div>
+        <div id="error-container" style="display: none;">
+            <h2>Oops!</h2>
+            <p>Could not load the quiz. The quiz data may have expired or the link is incorrect.</p>
+            <a href="index.html" class="button-style">Create a new quiz</a>
+        </div>
     </div>
     
     <script>
@@ -28,7 +45,6 @@
         const quizView = document.getElementById('quiz-view');
         const resultsView = document.getElementById('results-view');
         const errorContainer = document.getElementById('error-container');
-        // All other DOM elements... (condensed)
         const qCounter = document.getElementById('question-counter'); const timerDisplay = document.getElementById('timer'); const qText = document.getElementById('question-text'); const answerOpts = document.getElementById('answer-options'); const explanationBox = document.getElementById('explanation-box'); const explanationText = document.getElementById('explanation-text'); const submitBtn = document.getElementById('submit-btn'); const nextBtn = document.getElementById('next-btn');
         let quizData = [], currentQIndex = 0, score = 0, userAnswers = [], timePerQuestion = [], timerInterval, questionStartTime;
 
@@ -39,26 +55,15 @@
         nextBtn.addEventListener('click', function() { currentQIndex++; if (currentQIndex < quizData.length) { displayQuestion(); } else { displayResults(); } });
         function displayResults() { quizView.style.display = 'none'; resultsView.style.display = 'block'; document.getElementById('final-score').textContent = `Final Score: ${score} out of ${quizData.length}`; const totalTime = timePerQuestion.reduce((a, b) => a + b, 0); document.getElementById('total-time').textContent = `Total Time: ${totalTime} seconds`; let summaryHtml = '<table><tr><th>#</th><th>Question</th><th>Your Answer</th><th>Time</th></tr>'; quizData.forEach((q, i) => { const isCorrect = userAnswers[i] === q.correctAnswer; const statusClass = isCorrect ? 'result-correct' : 'result-incorrect'; const statusSymbol = isCorrect ? '✔' : '✖'; const userAnswerText = `${userAnswers[i].toUpperCase()}: ${q.answers[userAnswers[i]]}`; const correctAnswerText = `Correct: ${q.correctAnswer.toUpperCase()}: ${q.answers[q.correctAnswer]}`; summaryHtml += `<tr><td class="${statusClass}">${statusSymbol}</td><td>${q.question}</td><td>${userAnswerText} <br><small class="${statusClass}">${isCorrect ? '' : correctAnswerText}</small></td><td>${timePerQuestion[i]}s</td></tr>`; }); summaryHtml += '</table>'; document.getElementById('results-summary').innerHTML = summaryHtml; }
 
-        // --- THE NEW localStorage BASED INITIALIZATION ---
         try {
             const urlParams = new URLSearchParams(window.location.search);
             const quizKey = urlParams.get('key');
             if (!quizKey) throw new Error("No quiz key found in the link.");
-
-            // Retrieve the full JSON string from localStorage using the key.
             const jsonString = localStorage.getItem(quizKey);
             if (!jsonString) throw new Error("Quiz data not found in browser storage. It may have been cleared or was never created.");
-            
-            // The rest is the same: parse the JSON and start the quiz.
             quizData = JSON.parse(jsonString);
-            
             if (!Array.isArray(quizData) || quizData.length === 0) throw new Error("Parsed data is not a valid quiz.");
-            
             displayQuestion();
-
-            // Optional: Clean up localStorage after the quiz is successfully loaded.
-            // localStorage.removeItem(quizKey);
-
         } catch (e) {
             console.error("Quiz initialization failed:", e.message);
             quizView.style.display = 'none';
