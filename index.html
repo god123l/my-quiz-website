@@ -63,10 +63,11 @@
         }
 
         function handleFileUpload() {
-            const file = fileInput.files[0]; if (!file) return alert('Please select a file.'); const reader = new FileReader();
+            const file = fileInput.files[0]; if (!file) { alert('Please select a file.'); return; }
+            const reader = new FileReader();
             reader.onload = function(event) {
                 const quizData = parseQuizText(event.target.result);
-                if (quizData && quizData.length > 0) generateShareLink(quizData); else alert('Could not parse the file. Check the 7-line format.');
+                if (quizData && quizData.length > 0) { generateShareLink(quizData); } else { alert('Could not parse the file. Check the 7-line format.'); }
             };
             reader.readAsText(file);
         }
@@ -74,25 +75,56 @@
         function parseQuizText(text) {
             const quizData = []; const questionBlocks = text.trim().split(/\n\s*\n/);
             for (const block of questionBlocks) {
-                const lines = block.split('\n'); if (lines.length < 6) continue; const explanationLine = lines[6] || 'EXPLANATION:'; const explanation = explanationLine.startsWith('EXPLANATION:') ? explanationLine.substring(12).trim() : '';
-                quizData.push({ question: lines[0].trim(), answers: { a: lines[1].trim(), b: lines[2].trim(), c: lines[3].trim(), d: lines[4].trim() }, correctAnswer: lines[5].substring(8).trim().toLowerCase(), explanation: explanation });
+                const lines = block.split('\n'); if (lines.length < 6) continue;
+                const explanationLine = lines[6] || 'EXPLANATION:';
+                const explanation = explanationLine.startsWith('EXPLANATION:') ? explanationLine.substring(12).trim() : '';
+                const questionData = {
+                    question: lines[0].trim(),
+                    answers: { a: lines[1].trim(), b: lines[2].trim(), c: lines[3].trim(), d: lines[4].trim() },
+                    correctAnswer: lines[5].substring(8).trim().toLowerCase(),
+                    explanation: explanation
+                };
+                quizData.push(questionData);
             }
             return quizData;
         }
         
+        // --- THE REWRITTEN, MORE RELIABLE FUNCTION ---
         function generateShareLink(quizData) {
-            if (!quizData || quizData.length === 0) return alert("No valid questions found.");
-            const jsonString = JSON.stringify(quizData);
-            // --- THE NEW, SIMPLER ENCODING LINE ---
-            const encodedData = encodeURIComponent(jsonString);
-            const quizUrl = `${window.location.href.replace('index.html', '').replace(/\/$/, '')}/quiz.html?data=${encodedData}`;
-            shareLinkInput.value = quizUrl;
-            linkContainer.style.display = 'block';
-            shareLinkInput.select();
+            if (!quizData || quizData.length === 0) {
+                alert("No valid questions found to create a link.");
+                return;
+            }
+            try {
+                // Step 1: Convert the quiz data object into a JSON string.
+                const jsonString = JSON.stringify(quizData);
+
+                // Step 2: Encode the JSON string so it's safe to put in a URL.
+                const encodedData = encodeURIComponent(jsonString);
+
+                // Step 3: Get the base URL for the quiz player.
+                const baseUrl = window.location.href.replace('index.html', '').replace(/\/$/, '');
+                
+                // Step 4: Construct the final URL.
+                const quizUrl = `${baseUrl}/quiz.html?data=${encodedData}`;
+
+                // Step 5: Display the URL to the user.
+                shareLinkInput.value = quizUrl;
+                linkContainer.style.display = 'block';
+                shareLinkInput.select();
+
+            } catch (error) {
+                // If anything goes wrong during creation, alert the user.
+                alert("An error occurred while creating the link. Please check your quiz content for unusual characters.");
+                console.error("Link generation failed:", error);
+            }
         }
 
         addQuestionBtn.addEventListener('click', addQuestion);
-        generateManualBtn.addEventListener('click', () => generateShareLink(getQuizDataFromForm()));
+        generateManualBtn.addEventListener('click', () => {
+            const data = getQuizDataFromForm();
+            generateShareLink(data);
+        });
         createFileBtn.addEventListener('click', handleFileUpload);
         addQuestion();
     </script>
