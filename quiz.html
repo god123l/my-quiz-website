@@ -1,45 +1,91 @@
-body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    background-color: #f0f2f5;
-    color: #333;
-    max-width: 600px;
-    margin: 20px auto;
-    padding: 15px;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-h1 {
-    color: #1877f2;
-}
-.question-block {
-    margin-bottom: 20px;
-    background-color: #fff;
-    padding: 15px;
-    border-radius: 8px;
-}
-.answers label {
-    display: block;
-    margin: 5px 0;
-}
-button {
-    background-color: #1877f2;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 16px;
-    margin-top: 10px;
-}
-button:hover {
-    background-color: #166fe5;
-}
-#results-container {
-    margin-top: 20px;
-    font-weight: bold;
-}
-hr {
-    border: none;
-    border-top: 1px solid #ddd;
-    margin: 20px 0;
-}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Awesome Quiz</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="quiz-body">
+        <h1>Quiz Time!</h1>
+        <div id="quiz-container"></div>
+        <button id="submit-button">Submit Answers</button>
+        <div id="results-container"></div>
+    </div>
+    
+    <div id="error-container" style="display: none;">
+        <h1>Oops!</h1>
+        <p>No quiz data was found. Please make sure you are using a valid link created from the quiz generator.</p>
+        <a href="index.html">Create a new quiz</a>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const quizBody = document.getElementById('quiz-body');
+            const errorContainer = document.getElementById('error-container');
+            const quizContainer = document.getElementById('quiz-container');
+            const resultsContainer = document.getElementById('results-container');
+            const submitButton = document.getElementById('submit-button');
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const encodedData = urlParams.get('data');
+
+            if (!encodedData) {
+                quizBody.style.display = 'none';
+                errorContainer.style.display = 'block';
+                return;
+            }
+
+            try {
+                const jsonString = atob(encodedData);
+                const quizData = JSON.parse(jsonString);
+
+                function buildQuiz() {
+                    const output = [];
+                    quizData.forEach((currentQuestion, questionNumber) => {
+                        const answers = [];
+                        // This loop automatically handles 3, 4, or more answers!
+                        for (letter in currentQuestion.answers) {
+                            answers.push(
+                                `<label>
+                                    <input type="radio" name="question${questionNumber}" value="${letter}">
+                                    ${letter} : ${currentQuestion.answers[letter]}
+                                </label>`
+                            );
+                        }
+                        output.push(
+                            `<div class="question-block">
+                                <div class="question"> ${currentQuestion.question} </div>
+                                <div class="answers"> ${answers.join('')} </div>
+                            </div>`
+                        );
+                    });
+                    quizContainer.innerHTML = output.join('');
+                }
+
+                function showResults() {
+                    const answerContainers = quizContainer.querySelectorAll('.answers');
+                    let numCorrect = 0;
+                    quizData.forEach((currentQuestion, questionNumber) => {
+                        const selector = `input[name=question${questionNumber}]:checked`;
+                        const userAnswer = (answerContainers[questionNumber].querySelector(selector) || {}).value;
+                        if (userAnswer === currentQuestion.correctAnswer) {
+                            numCorrect++;
+                        }
+                    });
+                    resultsContainer.innerHTML = `You got ${numCorrect} out of ${quizData.length} correct!`;
+                }
+
+                buildQuiz();
+                submitButton.addEventListener('click', showResults);
+
+            } catch (e) {
+                console.error("Failed to parse quiz data:", e);
+                quizBody.style.display = 'none';
+                errorContainer.style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>
