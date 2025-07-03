@@ -15,7 +15,7 @@
 </head>
 <body>
     <h1>Create Your Own Quiz</h1>
-    <p>Fill out the form below, or upload a formatted .txt file (with optional explanations).</p>
+    <p>Fill out the form below, or upload a formatted .txt file. A short, shareable link will be generated.</p>
 
     <div class="creator-block">
         <h3>Upload a Quiz File</h3>
@@ -31,7 +31,7 @@
     <button id="generate-manual-btn">Create Link from Form</button>
     
     <div id="share-link-container">
-        <strong>Your quiz is ready! Copy and share this link:</strong>
+        <strong>Your quiz is ready! Copy and share this short link:</strong>
         <input type="text" id="share-link" readonly>
     </div>
 
@@ -76,55 +76,45 @@
             const quizData = []; const questionBlocks = text.trim().split(/\n\s*\n/);
             for (const block of questionBlocks) {
                 const lines = block.split('\n'); if (lines.length < 6) continue;
-                const explanationLine = lines[6] || 'EXPLANATION:';
-                const explanation = explanationLine.startsWith('EXPLANATION:') ? explanationLine.substring(12).trim() : '';
-                const questionData = {
-                    question: lines[0].trim(),
-                    answers: { a: lines[1].trim(), b: lines[2].trim(), c: lines[3].trim(), d: lines[4].trim() },
-                    correctAnswer: lines[5].substring(8).trim().toLowerCase(),
-                    explanation: explanation
-                };
+                const explanationLine = lines[6] || 'EXPLANATION:'; const explanation = explanationLine.startsWith('EXPLANATION:') ? explanationLine.substring(12).trim() : '';
+                const questionData = { question: lines[0].trim(), answers: { a: lines[1].trim(), b: lines[2].trim(), c: lines[3].trim(), d: lines[4].trim() }, correctAnswer: lines[5].substring(8).trim().toLowerCase(), explanation: explanation };
                 quizData.push(questionData);
             }
             return quizData;
         }
         
-        // --- THE REWRITTEN, MORE RELIABLE FUNCTION ---
+        // --- THE NEW localStorage BASED LINK GENERATOR ---
         function generateShareLink(quizData) {
-            if (!quizData || quizData.length === 0) {
-                alert("No valid questions found to create a link.");
-                return;
-            }
+            if (!quizData || quizData.length === 0) { alert("No valid questions found."); return; }
             try {
-                // Step 1: Convert the quiz data object into a JSON string.
+                // Step 1: Create a unique key for this quiz. A timestamp is perfect.
+                const quizKey = `quiz_${Date.now()}`;
+
+                // Step 2: Convert quiz data to a JSON string.
                 const jsonString = JSON.stringify(quizData);
 
-                // Step 2: Encode the JSON string so it's safe to put in a URL.
-                const encodedData = encodeURIComponent(jsonString);
+                // Step 3: Save the entire JSON string to the browser's localStorage.
+                localStorage.setItem(quizKey, jsonString);
 
-                // Step 3: Get the base URL for the quiz player.
+                // Step 4: Get the base URL for the quiz player.
                 const baseUrl = window.location.href.replace('index.html', '').replace(/\/$/, '');
                 
-                // Step 4: Construct the final URL.
-                const quizUrl = `${baseUrl}/quiz.html?data=${encodedData}`;
+                // Step 5: Construct the final, SHORT URL with only the key.
+                const quizUrl = `${baseUrl}/quiz.html?key=${quizKey}`;
 
-                // Step 5: Display the URL to the user.
+                // Step 6: Display the short URL to the user.
                 shareLinkInput.value = quizUrl;
                 linkContainer.style.display = 'block';
                 shareLinkInput.select();
 
             } catch (error) {
-                // If anything goes wrong during creation, alert the user.
-                alert("An error occurred while creating the link. Please check your quiz content for unusual characters.");
+                alert("An error occurred while creating the link. Your browser may be in private mode or storage might be full.");
                 console.error("Link generation failed:", error);
             }
         }
 
         addQuestionBtn.addEventListener('click', addQuestion);
-        generateManualBtn.addEventListener('click', () => {
-            const data = getQuizDataFromForm();
-            generateShareLink(data);
-        });
+        generateManualBtn.addEventListener('click', () => { generateShareLink(getQuizDataFromForm()); });
         createFileBtn.addEventListener('click', handleFileUpload);
         addQuestion();
     </script>
