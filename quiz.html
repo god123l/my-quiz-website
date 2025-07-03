@@ -12,6 +12,11 @@
         <div id="quiz-container"></div>
         <button id="submit-button">Submit Answers</button>
         <div id="results-container"></div>
+
+        <!-- NEW: Home button, initially hidden -->
+        <a href="index.html" id="home-button" class="home-link" style="display: none;">
+            Create a New Quiz
+        </a>
     </div>
     
     <div id="error-container" style="display: none;">
@@ -27,6 +32,7 @@
             const quizContainer = document.getElementById('quiz-container');
             const resultsContainer = document.getElementById('results-container');
             const submitButton = document.getElementById('submit-button');
+            const homeButton = document.getElementById('home-button'); // Get the new button
 
             const urlParams = new URLSearchParams(window.location.search);
             const encodedData = urlParams.get('data');
@@ -64,7 +70,6 @@
                     quizContainer.innerHTML = output.join('');
                 }
 
-                // --- THIS IS THE CORRECTED FUNCTION ---
                 function showResults() {
                     submitButton.style.display = 'none';
                     const allRadios = quizContainer.querySelectorAll('input[type="radio"]');
@@ -75,32 +80,27 @@
 
                     quizData.forEach((currentQuestion, questionNumber) => {
                         const answerContainer = answerContainers[questionNumber];
-                        
-                        // Find the user's selected answer
                         const selector = `input[name="question${questionNumber}"]:checked`;
                         const userAnswerNode = answerContainer.querySelector(selector);
                         const userAnswer = userAnswerNode ? userAnswerNode.value : undefined;
-
-                        // Find the input element corresponding to the correct answer
                         const correctAnswerValue = currentQuestion.correctAnswer;
-                        const correctInputSelector = `input[value="${correctAnswerValue}"]`;
-                        const correctInput = answerContainer.querySelector(correctInputSelector);
+                        const correctInput = answerContainer.querySelector(`input[value="${correctAnswerValue}"]`);
 
-                        // Always highlight the correct answer's label in green
                         if (correctInput) {
                             correctInput.parentElement.classList.add('correct');
                         }
-
-                        // Check if the user's answer was correct or incorrect
                         if (userAnswer === correctAnswerValue) {
                             numCorrect++;
                         } else if (userAnswer !== undefined) {
-                            // If the answer was wrong, highlight the user's choice in red
                             userAnswerNode.parentElement.classList.add('incorrect');
                         }
                     });
 
                     resultsContainer.innerHTML = `You got ${numCorrect} out of ${quizData.length} correct!`;
+                    
+                    // --- THIS IS THE NEW PART ---
+                    // Show the 'Create a New Quiz' button after results are displayed
+                    homeButton.style.display = 'inline-block';
                 }
 
                 buildQuiz();
