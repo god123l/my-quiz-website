@@ -15,7 +15,7 @@
 </head>
 <body>
     <h1>Create Your Own Quiz</h1>
-    <p>Fill out the form below, or upload a formatted .txt file (now with optional explanations).</p>
+    <p>Fill out the form below, or upload a formatted .txt file (with optional explanations).</p>
 
     <div class="creator-block">
         <h3>Upload a Quiz File</h3>
@@ -36,6 +36,7 @@
     </div>
 
     <script>
+        // --- All the code is the same except for ONE line in generateShareLink ---
         const questionsContainer = document.getElementById('questions-container');
         const addQuestionBtn = document.getElementById('add-question-btn');
         const generateManualBtn = document.getElementById('generate-manual-btn');
@@ -73,12 +74,7 @@
                 const correctAnswer = q.querySelector('.correct-answer').value.toLowerCase();
                 const explanation = q.querySelector('.explanation').value.trim();
                 if (questionTitle && answerA && answerB && answerC && answerD && correctAnswer) {
-                    quizData.push({
-                        question: questionTitle,
-                        answers: { a: answerA, b: answerB, c: answerC, d: answerD },
-                        correctAnswer: correctAnswer,
-                        explanation: explanation
-                    });
+                    quizData.push({ question: questionTitle, answers: { a: answerA, b: answerB, c: answerC, d: answerD }, correctAnswer: correctAnswer, explanation: explanation });
                 }
             });
             return quizData;
@@ -90,8 +86,7 @@
             const reader = new FileReader();
             reader.onload = function(event) {
                 const quizData = parseQuizText(event.target.result);
-                if (quizData && quizData.length > 0) generateShareLink(quizData);
-                else alert('Could not parse the file. Check the 7-line format.');
+                if (quizData && quizData.length > 0) generateShareLink(quizData); else alert('Could not parse the file. Check the 7-line format.');
             };
             reader.readAsText(file);
         }
@@ -102,16 +97,9 @@
             for (const block of questionBlocks) {
                 const lines = block.split('\n');
                 if (lines.length < 6) continue;
-                
                 const explanationLine = lines[6] || 'EXPLANATION:';
                 const explanation = explanationLine.startsWith('EXPLANATION:') ? explanationLine.substring(12).trim() : '';
-
-                quizData.push({
-                    question: lines[0].trim(),
-                    answers: { a: lines[1].trim(), b: lines[2].trim(), c: lines[3].trim(), d: lines[4].trim() },
-                    correctAnswer: lines[5].substring(8).trim().toLowerCase(),
-                    explanation: explanation
-                });
+                quizData.push({ question: lines[0].trim(), answers: { a: lines[1].trim(), b: lines[2].trim(), c: lines[3].trim(), d: lines[4].trim() }, correctAnswer: lines[5].substring(8).trim().toLowerCase(), explanation: explanation });
             }
             return quizData;
         }
@@ -119,7 +107,8 @@
         function generateShareLink(quizData) {
             if (!quizData || quizData.length === 0) return alert("No valid questions found.");
             const jsonString = JSON.stringify(quizData);
-            const encodedData = btoa(unescape(encodeURIComponent(jsonString))); // Better encoding for special characters
+            // --- THIS IS THE CORRECTED ENCODING LINE ---
+            const encodedData = btoa(encodeURIComponent(jsonString));
             const quizUrl = `${window.location.href.replace('index.html', '').replace(/\/$/, '')}/quiz.html?data=${encodedData}`;
             shareLinkInput.value = quizUrl;
             linkContainer.style.display = 'block';
