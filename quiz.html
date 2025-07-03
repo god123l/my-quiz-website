@@ -30,6 +30,7 @@
 
             const urlParams = new URLSearchParams(window.location.search);
             const encodedData = urlParams.get('data');
+            let quizData = []; // Define quizData here to be accessible in all functions
 
             if (!encodedData) {
                 quizBody.style.display = 'none';
@@ -39,13 +40,12 @@
 
             try {
                 const jsonString = atob(encodedData);
-                const quizData = JSON.parse(jsonString);
+                quizData = JSON.parse(jsonString); // Assign the parsed data
 
                 function buildQuiz() {
                     const output = [];
                     quizData.forEach((currentQuestion, questionNumber) => {
                         const answers = [];
-                        // This loop automatically handles 3, 4, or more answers!
                         for (letter in currentQuestion.answers) {
                             answers.push(
                                 `<label>
@@ -64,16 +64,39 @@
                     quizContainer.innerHTML = output.join('');
                 }
 
+                // --- THIS IS THE UPDATED FUNCTION ---
                 function showResults() {
+                    // Hide the submit button and disable all radio inputs
+                    submitButton.style.display = 'none';
+                    const allRadios = quizContainer.querySelectorAll('input[type="radio"]');
+                    allRadios.forEach(radio => radio.disabled = true);
+
                     const answerContainers = quizContainer.querySelectorAll('.answers');
                     let numCorrect = 0;
+
                     quizData.forEach((currentQuestion, questionNumber) => {
+                        const answerContainer = answerContainers[questionNumber];
                         const selector = `input[name=question${questionNumber}]:checked`;
-                        const userAnswer = (answerContainers[questionNumber].querySelector(selector) || {}).value;
+                        const userAnswerNode = answerContainer.querySelector(selector);
+                        const userAnswer = userAnswerNode ? userAnswerNode.value : undefined;
+
+                        // Find the label for the correct answer
+                        const correctLabel = answerContainer.querySelector(`input[value=${currentQuestion.correctAnswer}]`).parentElement;
+                        
+                        // Always highlight the correct answer in green
+                        correctLabel.classList.add('correct');
+
+                        // If the user answered and was correct
                         if (userAnswer === currentQuestion.correctAnswer) {
                             numCorrect++;
+                        } 
+                        // If the user answered but was incorrect
+                        else if (userAnswer !== undefined) {
+                            userAnswerNode.parentElement.classList.add('incorrect');
                         }
                     });
+
+                    // Update the final score text
                     resultsContainer.innerHTML = `You got ${numCorrect} out of ${quizData.length} correct!`;
                 }
 
