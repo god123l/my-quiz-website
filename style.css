@@ -64,3 +64,21 @@ hr {
     border-radius: 5px;
     margin-top: 5px;
 }
+/* --- ADD THIS NEW CODE AT THE END OF YOUR CSS FILE --- */
+
+a.home-link {
+    display: inline-block; /* Makes the <a> tag behave like a button */
+    text-align: center;
+    margin-top: 20px;
+    padding: 10px 20px;
+    background-color: #6c757d; /* A nice secondary gray color */
+    color: white;
+    text-decoration: none; /* Removes the default underline from the link */
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+a.home-link:hover {
+    background-color: #5a6268; /* A darker gray for the hover effect */
+}
