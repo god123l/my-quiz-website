@@ -36,7 +36,6 @@
     </div>
 
     <script>
-        // --- All the code is the same except for ONE line in generateShareLink ---
         const questionsContainer = document.getElementById('questions-container');
         const addQuestionBtn = document.getElementById('add-question-btn');
         const generateManualBtn = document.getElementById('generate-manual-btn');
@@ -50,40 +49,21 @@
             questionCount++;
             const block = document.createElement('div');
             block.className = 'creator-block';
-            block.innerHTML = `
-                <h4>Question ${questionCount}</h4>
-                <input type="text" placeholder="Enter your question" class="question-title">
-                <input type="text" placeholder="Answer A" class="answer-a">
-                <input type="text" placeholder="Answer B" class="answer-b">
-                <input type="text" placeholder="Answer C" class="answer-c">
-                <input type="text" placeholder="Answer D" class="answer-d">
-                <input type="text" placeholder="Correct Answer Letter (a, b, c, or d)" class="correct-answer" maxlength="1">
-                <textarea placeholder="Optional: Enter explanation here" class="explanation"></textarea>
-            `;
+            block.innerHTML = `<h4>Question ${questionCount}</h4><input type="text" placeholder="Enter your question" class="question-title"><input type="text" placeholder="Answer A" class="answer-a"><input type="text" placeholder="Answer B" class="answer-b"><input type="text" placeholder="Answer C" class="answer-c"><input type="text" placeholder="Answer D" class="answer-d"><input type="text" placeholder="Correct Answer Letter (a, b, c, or d)" class="correct-answer" maxlength="1"><textarea placeholder="Optional: Enter explanation here" class="explanation"></textarea>`;
             questionsContainer.appendChild(block);
         }
 
         function getQuizDataFromForm() {
             const quizData = [];
             document.querySelectorAll('#questions-container .creator-block').forEach(q => {
-                const questionTitle = q.querySelector('.question-title').value;
-                const answerA = q.querySelector('.answer-a').value;
-                const answerB = q.querySelector('.answer-b').value;
-                const answerC = q.querySelector('.answer-c').value;
-                const answerD = q.querySelector('.answer-d').value;
-                const correctAnswer = q.querySelector('.correct-answer').value.toLowerCase();
-                const explanation = q.querySelector('.explanation').value.trim();
-                if (questionTitle && answerA && answerB && answerC && answerD && correctAnswer) {
-                    quizData.push({ question: questionTitle, answers: { a: answerA, b: answerB, c: answerC, d: answerD }, correctAnswer: correctAnswer, explanation: explanation });
-                }
+                const questionTitle = q.querySelector('.question-title').value; const answerA = q.querySelector('.answer-a').value; const answerB = q.querySelector('.answer-b').value; const answerC = q.querySelector('.answer-c').value; const answerD = q.querySelector('.answer-d').value; const correctAnswer = q.querySelector('.correct-answer').value.toLowerCase(); const explanation = q.querySelector('.explanation').value.trim();
+                if (questionTitle && answerA && answerB && answerC && answerD && correctAnswer) { quizData.push({ question: questionTitle, answers: { a: answerA, b: answerB, c: answerC, d: answerD }, correctAnswer: correctAnswer, explanation: explanation }); }
             });
             return quizData;
         }
 
         function handleFileUpload() {
-            const file = fileInput.files[0];
-            if (!file) return alert('Please select a file.');
-            const reader = new FileReader();
+            const file = fileInput.files[0]; if (!file) return alert('Please select a file.'); const reader = new FileReader();
             reader.onload = function(event) {
                 const quizData = parseQuizText(event.target.result);
                 if (quizData && quizData.length > 0) generateShareLink(quizData); else alert('Could not parse the file. Check the 7-line format.');
@@ -92,13 +72,9 @@
         }
 
         function parseQuizText(text) {
-            const quizData = [];
-            const questionBlocks = text.trim().split(/\n\s*\n/);
+            const quizData = []; const questionBlocks = text.trim().split(/\n\s*\n/);
             for (const block of questionBlocks) {
-                const lines = block.split('\n');
-                if (lines.length < 6) continue;
-                const explanationLine = lines[6] || 'EXPLANATION:';
-                const explanation = explanationLine.startsWith('EXPLANATION:') ? explanationLine.substring(12).trim() : '';
+                const lines = block.split('\n'); if (lines.length < 6) continue; const explanationLine = lines[6] || 'EXPLANATION:'; const explanation = explanationLine.startsWith('EXPLANATION:') ? explanationLine.substring(12).trim() : '';
                 quizData.push({ question: lines[0].trim(), answers: { a: lines[1].trim(), b: lines[2].trim(), c: lines[3].trim(), d: lines[4].trim() }, correctAnswer: lines[5].substring(8).trim().toLowerCase(), explanation: explanation });
             }
             return quizData;
@@ -107,8 +83,8 @@
         function generateShareLink(quizData) {
             if (!quizData || quizData.length === 0) return alert("No valid questions found.");
             const jsonString = JSON.stringify(quizData);
-            // --- THIS IS THE CORRECTED ENCODING LINE ---
-            const encodedData = btoa(encodeURIComponent(jsonString));
+            // --- THE NEW, SIMPLER ENCODING LINE ---
+            const encodedData = encodeURIComponent(jsonString);
             const quizUrl = `${window.location.href.replace('index.html', '').replace(/\/$/, '')}/quiz.html?data=${encodedData}`;
             shareLinkInput.value = quizUrl;
             linkContainer.style.display = 'block';
