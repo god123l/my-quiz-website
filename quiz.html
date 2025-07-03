@@ -30,7 +30,7 @@
 
             const urlParams = new URLSearchParams(window.location.search);
             const encodedData = urlParams.get('data');
-            let quizData = []; // Define quizData here to be accessible in all functions
+            let quizData = []; 
 
             if (!encodedData) {
                 quizBody.style.display = 'none';
@@ -40,7 +40,7 @@
 
             try {
                 const jsonString = atob(encodedData);
-                quizData = JSON.parse(jsonString); // Assign the parsed data
+                quizData = JSON.parse(jsonString);
 
                 function buildQuiz() {
                     const output = [];
@@ -64,9 +64,8 @@
                     quizContainer.innerHTML = output.join('');
                 }
 
-                // --- THIS IS THE UPDATED FUNCTION ---
+                // --- THIS IS THE CORRECTED FUNCTION ---
                 function showResults() {
-                    // Hide the submit button and disable all radio inputs
                     submitButton.style.display = 'none';
                     const allRadios = quizContainer.querySelectorAll('input[type="radio"]');
                     allRadios.forEach(radio => radio.disabled = true);
@@ -76,27 +75,31 @@
 
                     quizData.forEach((currentQuestion, questionNumber) => {
                         const answerContainer = answerContainers[questionNumber];
-                        const selector = `input[name=question${questionNumber}]:checked`;
+                        
+                        // Find the user's selected answer
+                        const selector = `input[name="question${questionNumber}"]:checked`;
                         const userAnswerNode = answerContainer.querySelector(selector);
                         const userAnswer = userAnswerNode ? userAnswerNode.value : undefined;
 
-                        // Find the label for the correct answer
-                        const correctLabel = answerContainer.querySelector(`input[value=${currentQuestion.correctAnswer}]`).parentElement;
-                        
-                        // Always highlight the correct answer in green
-                        correctLabel.classList.add('correct');
+                        // Find the input element corresponding to the correct answer
+                        const correctAnswerValue = currentQuestion.correctAnswer;
+                        const correctInputSelector = `input[value="${correctAnswerValue}"]`;
+                        const correctInput = answerContainer.querySelector(correctInputSelector);
 
-                        // If the user answered and was correct
-                        if (userAnswer === currentQuestion.correctAnswer) {
+                        // Always highlight the correct answer's label in green
+                        if (correctInput) {
+                            correctInput.parentElement.classList.add('correct');
+                        }
+
+                        // Check if the user's answer was correct or incorrect
+                        if (userAnswer === correctAnswerValue) {
                             numCorrect++;
-                        } 
-                        // If the user answered but was incorrect
-                        else if (userAnswer !== undefined) {
+                        } else if (userAnswer !== undefined) {
+                            // If the answer was wrong, highlight the user's choice in red
                             userAnswerNode.parentElement.classList.add('incorrect');
                         }
                     });
 
-                    // Update the final score text
                     resultsContainer.innerHTML = `You got ${numCorrect} out of ${quizData.length} correct!`;
                 }
 
