@@ -48,7 +48,8 @@
                 <input type="text" placeholder="Answer A" class="answer-a">
                 <input type="text" placeholder="Answer B" class="answer-b">
                 <input type="text" placeholder="Answer C" class="answer-c">
-                <input type="text" placeholder="Correct Answer Letter (a, b, or c)" class="correct-answer" maxlength="1">
+                <input type="text" placeholder="Answer D" class="answer-d">
+                <input type="text" placeholder="Correct Answer Letter (a, b, c, or d)" class="correct-answer" maxlength="1">
             `;
             questionsContainer.appendChild(block);
         }
@@ -62,29 +63,28 @@
                 const answerA = q.querySelector('.answer-a').value;
                 const answerB = q.querySelector('.answer-b').value;
                 const answerC = q.querySelector('.answer-c').value;
+                const answerD = q.querySelector('.answer-d').value; // New
                 const correctAnswer = q.querySelector('.correct-answer').value.toLowerCase();
-                if (questionTitle && answerA && answerB && answerC && correctAnswer) {
+                
+                // Updated validation to include Answer D
+                if (questionTitle && answerA && answerB && answerC && answerD && correctAnswer) {
                     quizData.push({
                         question: questionTitle,
-                        answers: { a: answerA, b: answerB, c: answerC },
+                        answers: { a: answerA, b: answerB, c: answerC, d: answerD }, // New
                         correctAnswer: correctAnswer
                     });
                 }
             });
 
             if (quizData.length === 0) {
-                alert("Please create at least one valid question.");
+                alert("Please create at least one valid question with all four answers filled in.");
                 return;
             }
 
-            // Convert the data to a JSON string, then to a Base64 string
             const jsonString = JSON.stringify(quizData);
-            const encodedData = btoa(jsonString); // btoa() encodes to Base64
-
-            // Create the full URL
+            const encodedData = btoa(jsonString);
             const quizUrl = `${window.location.href.replace('index.html', '').replace(/\/$/, '')}/quiz.html?data=${encodedData}`;
-
-            // Display the link
+            
             shareLinkInput.value = quizUrl;
             linkContainer.style.display = 'block';
             shareLinkInput.select();
