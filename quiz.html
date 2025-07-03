@@ -5,11 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Awesome Quiz</title>
     <link rel="stylesheet" href="style.css">
-    <style> /* Adding debug style here */
-        #debug-panel { display: none; margin-top: 20px; padding: 15px; background-color: #fff0f0; border: 2px solid red; border-radius: 5px; }
-        #debug-panel h3 { margin-top: 0; color: red; }
-        #debug-panel pre { white-space: pre-wrap; word-wrap: break-word; background: #f9f9f9; padding: 10px; }
-    </style>
 </head>
 <body>
     <div id="quiz-view">
@@ -23,27 +18,17 @@
         <div id="results-summary"></div><a href="index.html" class="button-style">Create a New Quiz</a>
     </div>
     <div id="error-container" style="display: none;">
-        <h1>Oops!</h1><p>Could not load the quiz from the link.</p>
+        <h1>Oops!</h1><p>Could not load the quiz. The quiz data may have expired or the link is incorrect.</p>
+        <a href="index.html">Create a new quiz</a>
     </div>
-    <!-- NEW: The Debugging Panel -->
-    <div id="debug-panel">
-        <h3>Debugging Information</h3>
-        <p>Please copy all the text in the boxes below and send it to get help.</p>
-        <strong>Error Message:</strong>
-        <pre id="debug-error"></pre>
-        <strong>Raw Data from URL:</strong>
-        <pre id="debug-raw-data"></pre>
-        <strong>Decoded Text (before parsing):</strong>
-        <pre id="debug-decoded-text"></pre>
-    </div>
-
+    
     <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // DOM Elements
         const quizView = document.getElementById('quiz-view');
         const resultsView = document.getElementById('results-view');
         const errorContainer = document.getElementById('error-container');
-        const debugPanel = document.getElementById('debug-panel');
-        // All other DOM elements... (condensed for brevity)
+        // All other DOM elements... (condensed)
         const qCounter = document.getElementById('question-counter'); const timerDisplay = document.getElementById('timer'); const qText = document.getElementById('question-text'); const answerOpts = document.getElementById('answer-options'); const explanationBox = document.getElementById('explanation-box'); const explanationText = document.getElementById('explanation-text'); const submitBtn = document.getElementById('submit-btn'); const nextBtn = document.getElementById('next-btn');
         let quizData = [], currentQIndex = 0, score = 0, userAnswers = [], timePerQuestion = [], timerInterval, questionStartTime;
 
@@ -54,36 +39,31 @@
         nextBtn.addEventListener('click', function() { currentQIndex++; if (currentQIndex < quizData.length) { displayQuestion(); } else { displayResults(); } });
         function displayResults() { quizView.style.display = 'none'; resultsView.style.display = 'block'; document.getElementById('final-score').textContent = `Final Score: ${score} out of ${quizData.length}`; const totalTime = timePerQuestion.reduce((a, b) => a + b, 0); document.getElementById('total-time').textContent = `Total Time: ${totalTime} seconds`; let summaryHtml = '<table><tr><th>#</th><th>Question</th><th>Your Answer</th><th>Time</th></tr>'; quizData.forEach((q, i) => { const isCorrect = userAnswers[i] === q.correctAnswer; const statusClass = isCorrect ? 'result-correct' : 'result-incorrect'; const statusSymbol = isCorrect ? '✔' : '✖'; const userAnswerText = `${userAnswers[i].toUpperCase()}: ${q.answers[userAnswers[i]]}`; const correctAnswerText = `Correct: ${q.correctAnswer.toUpperCase()}: ${q.answers[q.correctAnswer]}`; summaryHtml += `<tr><td class="${statusClass}">${statusSymbol}</td><td>${q.question}</td><td>${userAnswerText} <br><small class="${statusClass}">${isCorrect ? '' : correctAnswerText}</small></td><td>${timePerQuestion[i]}s</td></tr>`; }); summaryHtml += '</table>'; document.getElementById('results-summary').innerHTML = summaryHtml; }
 
-        // --- THE UPDATED INITIALIZATION AND DEBUGGING BLOCK ---
-        const urlParams = new URLSearchParams(window.location.search);
-        const encodedData = urlParams.get('data');
+        // --- THE NEW localStorage BASED INITIALIZATION ---
         try {
-            if (!encodedData) throw new Error("No 'data' parameter was found in the URL.");
+            const urlParams = new URLSearchParams(window.location.search);
+            const quizKey = urlParams.get('key');
+            if (!quizKey) throw new Error("No quiz key found in the link.");
 
-            // Decode the data robustly
-            const jsonString = decodeURIComponent(encodedData);
+            // Retrieve the full JSON string from localStorage using the key.
+            const jsonString = localStorage.getItem(quizKey);
+            if (!jsonString) throw new Error("Quiz data not found in browser storage. It may have been cleared or was never created.");
+            
+            // The rest is the same: parse the JSON and start the quiz.
             quizData = JSON.parse(jsonString);
             
-            if (!Array.isArray(quizData) || quizData.length === 0) throw new Error("Parsed data is not a valid, non-empty quiz array.");
+            if (!Array.isArray(quizData) || quizData.length === 0) throw new Error("Parsed data is not a valid quiz.");
             
             displayQuestion();
 
+            // Optional: Clean up localStorage after the quiz is successfully loaded.
+            // localStorage.removeItem(quizKey);
+
         } catch (e) {
-            // If anything fails, show the error container AND the debug panel
+            console.error("Quiz initialization failed:", e.message);
             quizView.style.display = 'none';
             resultsView.style.display = 'none';
             errorContainer.style.display = 'block';
-            debugPanel.style.display = 'block';
-            
-            // Populate the debug panel with useful info
-            document.getElementById('debug-error').textContent = e.message;
-            document.getElementById('debug-raw-data').textContent = encodedData || "Not found";
-            try {
-                // Try to decode even if parsing fails, to see what the text looks like
-                document.getElementById('debug-decoded-text').textContent = decodeURIComponent(encodedData);
-            } catch (decodeError) {
-                document.getElementById('debug-decoded-text').textContent = "Could not even decode the text. It may be corrupted.";
-            }
         }
     });
     </script>
