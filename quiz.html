@@ -40,8 +40,8 @@
     </div>
 
     <script>
+    // --- All the code is the same except for the Initialization block at the end ---
     document.addEventListener('DOMContentLoaded', function() {
-        // DOM Elements
         const quizView = document.getElementById('quiz-view');
         const resultsView = document.getElementById('results-view');
         const errorContainer = document.getElementById('error-container');
@@ -54,7 +54,6 @@
         const submitBtn = document.getElementById('submit-btn');
         const nextBtn = document.getElementById('next-btn');
 
-        // State
         let quizData = [];
         let currentQIndex = 0;
         let score = 0;
@@ -73,13 +72,11 @@
 
         function stopTimer() {
             clearInterval(timerInterval);
-            const endTime = Date.now();
-            const timeTaken = Math.round((endTime - questionStartTime) / 1000);
+            const timeTaken = Math.round((Date.now() - questionStartTime) / 1000);
             timePerQuestion.push(timeTaken);
         }
 
         function displayQuestion() {
-            // Reset state
             explanationBox.style.display = 'none';
             submitBtn.style.display = 'inline-block';
             nextBtn.style.display = 'none';
@@ -99,57 +96,32 @@
 
         submitBtn.addEventListener('click', function() {
             const selectedRadio = answerOpts.querySelector('input[name="answer"]:checked');
-            if (!selectedRadio) {
-                alert('Please select an answer!');
-                return;
-            }
-
+            if (!selectedRadio) { alert('Please select an answer!'); return; }
             stopTimer();
             const userAnswer = selectedRadio.value;
             const currentQ = quizData[currentQIndex];
             userAnswers.push(userAnswer);
-
-            // Disable all inputs
             answerOpts.querySelectorAll('input').forEach(input => input.disabled = true);
-            
             const correctLabel = answerOpts.querySelector(`input[value="${currentQ.correctAnswer}"]`).parentElement;
             correctLabel.classList.add('correct');
-
-            if (userAnswer === currentQ.correctAnswer) {
-                score++;
-            } else {
-                selectedRadio.parentElement.classList.add('incorrect');
-            }
-
-            if (currentQ.explanation) {
-                explanationText.textContent = currentQ.explanation;
-                explanationBox.style.display = 'block';
-            }
-
+            if (userAnswer === currentQ.correctAnswer) { score++; } else { selectedRadio.parentElement.classList.add('incorrect'); }
+            if (currentQ.explanation) { explanationText.textContent = currentQ.explanation; explanationBox.style.display = 'block'; }
             submitBtn.style.display = 'none';
             nextBtn.style.display = 'inline-block';
-            if (currentQIndex === quizData.length - 1) {
-                nextBtn.textContent = 'Show Results';
-            }
+            if (currentQIndex === quizData.length - 1) { nextBtn.textContent = 'Show Results'; }
         });
 
         nextBtn.addEventListener('click', function() {
             currentQIndex++;
-            if (currentQIndex < quizData.length) {
-                displayQuestion();
-            } else {
-                displayResults();
-            }
+            if (currentQIndex < quizData.length) { displayQuestion(); } else { displayResults(); }
         });
 
         function displayResults() {
             quizView.style.display = 'none';
             resultsView.style.display = 'block';
-
             document.getElementById('final-score').textContent = `Final Score: ${score} out of ${quizData.length}`;
             const totalTime = timePerQuestion.reduce((a, b) => a + b, 0);
             document.getElementById('total-time').textContent = `Total Time: ${totalTime} seconds`;
-
             let summaryHtml = '<table><tr><th>#</th><th>Question</th><th>Your Answer</th><th>Time</th></tr>';
             quizData.forEach((q, i) => {
                 const isCorrect = userAnswers[i] === q.correctAnswer;
@@ -157,27 +129,20 @@
                 const statusSymbol = isCorrect ? '✔' : '✖';
                 const userAnswerText = `${userAnswers[i].toUpperCase()}: ${q.answers[userAnswers[i]]}`;
                 const correctAnswerText = `Correct: ${q.correctAnswer.toUpperCase()}: ${q.answers[q.correctAnswer]}`;
-                
-                summaryHtml += `
-                    <tr>
-                        <td class="${statusClass}">${statusSymbol}</td>
-                        <td>${q.question}</td>
-                        <td>${userAnswerText} <br><small class="${statusClass}">${isCorrect ? '' : correctAnswerText}</small></td>
-                        <td>${timePerQuestion[i]}s</td>
-                    </tr>
-                `;
+                summaryHtml += `<tr><td class="${statusClass}">${statusSymbol}</td><td>${q.question}</td><td>${userAnswerText} <br><small class="${statusClass}">${isCorrect ? '' : correctAnswerText}</small></td><td>${timePerQuestion[i]}s</td></tr>`;
             });
             summaryHtml += '</table>';
             document.getElementById('results-summary').innerHTML = summaryHtml;
         }
 
-        // --- Initialization ---
+        // --- THIS IS THE CORRECTED INITIALIZATION BLOCK ---
         try {
             const urlParams = new URLSearchParams(window.location.search);
             const encodedData = urlParams.get('data');
             if (!encodedData) throw new Error("No data in URL");
 
-            const jsonString = decodeURIComponent(escape(atob(encodedData)));
+            // Decode the data robustly
+            const jsonString = decodeURIComponent(atob(encodedData));
             quizData = JSON.parse(jsonString);
             
             if (quizData.length > 0) displayQuestion();
@@ -186,6 +151,7 @@
         } catch (e) {
             console.error("Initialization failed:", e);
             quizView.style.display = 'none';
+            resultsView.style.display = 'none';
             errorContainer.style.display = 'block';
         }
     });
