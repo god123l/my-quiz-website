@@ -6,7 +6,6 @@
     <title>Quiz Creator</title>
     <link rel="stylesheet" href="style.css">
     <style>
-        /* Styles specific to the creator page */
         input[type=text] { width: 95%; padding: 8px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 4px; }
         .creator-block { border: 2px dashed #ccc; padding: 15px; margin-bottom: 15px; }
         #share-link-container { margin-top: 20px; background-color: #e9f5ff; padding: 10px; border-radius: 5px; display: none; }
@@ -15,35 +14,47 @@
 </head>
 <body>
     <h1>Create Your Own Quiz</h1>
-    <p>Fill out the form below, then click "Create & Share Link" to get a unique link for your quiz.</p>
+    <p>Fill out the form below, or upload a formatted .txt file.</p>
 
-    <div id="questions-container">
-        <!-- Questions will be added here by JavaScript -->
+    <!-- NEW SECTION: File Upload -->
+    <div class="creator-block">
+        <h3>Upload a Quiz File</h3>
+        <p>Create a .txt file with your questions and upload it here. See instructions for the format.</p>
+        <input type="file" id="quiz-file-input" accept=".txt">
+        <button id="create-from-file-btn">Create Link from File</button>
     </div>
-
-    <button id="add-question-btn">Add Another Question</button>
     <hr>
-    <button id="generate-btn">Create & Share Link</button>
-
+    
+    <!-- Existing form for manual creation -->
+    <h3>Or, Create Manually:</h3>
+    <div id="questions-container"></div>
+    <button id="add-question-btn">Add Another Question</button>
+    <button id="generate-manual-btn">Create Link from Form</button>
+    
+    <!-- Share link container (used by both methods) -->
     <div id="share-link-container">
         <strong>Your quiz is ready! Copy and share this link:</strong>
         <input type="text" id="share-link" readonly>
     </div>
 
     <script>
+        // --- DOM Elements ---
         const questionsContainer = document.getElementById('questions-container');
         const addQuestionBtn = document.getElementById('add-question-btn');
-        const generateBtn = document.getElementById('generate-btn');
+        const generateManualBtn = document.getElementById('generate-manual-btn');
+        const fileInput = document.getElementById('quiz-file-input');
+        const createFileBtn = document.getElementById('create-from-file-btn');
         const linkContainer = document.getElementById('share-link-container');
         const shareLinkInput = document.getElementById('share-link');
         let questionCount = 0;
 
+        // --- Manual Form Functions ---
         function addQuestion() {
             questionCount++;
             const block = document.createElement('div');
             block.className = 'creator-block';
             block.innerHTML = `
-                <h3>Question ${questionCount}</h3>
+                <h4>Question ${questionCount}</h4>
                 <input type="text" placeholder="Enter your question" class="question-title">
                 <input type="text" placeholder="Answer A" class="answer-a">
                 <input type="text" placeholder="Answer B" class="answer-b">
@@ -54,33 +65,78 @@
             questionsContainer.appendChild(block);
         }
 
-        function generateLink() {
+        function getQuizDataFromForm() {
             const quizData = [];
-            const allQuestions = document.querySelectorAll('.creator-block');
-
-            allQuestions.forEach(q => {
+            document.querySelectorAll('#questions-container .creator-block').forEach(q => {
                 const questionTitle = q.querySelector('.question-title').value;
                 const answerA = q.querySelector('.answer-a').value;
                 const answerB = q.querySelector('.answer-b').value;
                 const answerC = q.querySelector('.answer-c').value;
-                const answerD = q.querySelector('.answer-d').value; // New
+                const answerD = q.querySelector('.answer-d').value;
                 const correctAnswer = q.querySelector('.correct-answer').value.toLowerCase();
-                
-                // Updated validation to include Answer D
                 if (questionTitle && answerA && answerB && answerC && answerD && correctAnswer) {
                     quizData.push({
                         question: questionTitle,
-                        answers: { a: answerA, b: answerB, c: answerC, d: answerD }, // New
+                        answers: { a: answerA, b: answerB, c: answerC, d: answerD },
                         correctAnswer: correctAnswer
                     });
                 }
             });
+            return quizData;
+        }
 
-            if (quizData.length === 0) {
-                alert("Please create at least one valid question with all four answers filled in.");
+        // --- File Upload Functions ---
+        function handleFileUpload() {
+            const file = fileInput.files[0];
+            if (!file) {
+                alert('Please select a .txt file first!');
                 return;
             }
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const text = event.target.result;
+                const quizData = parseQuizText(text);
+                if (quizData && quizData.length > 0) {
+                    generateShareLink(quizData);
+                } else {
+                    alert('Could not parse the file. Please check that it follows the correct 6-line format and is separated by blank lines.');
+                }
+            };
+            reader.readAsText(file);
+        }
 
+        function parseQuizText(text) {
+            const quizData = [];
+            const questionBlocks = text.trim().split(/\n\s*\n/); // Split by one or more newlines (a blank line)
+            for (const block of questionBlocks) {
+                const lines = block.split('\n').filter(line => line.trim() !== '');
+                if (lines.length !== 6) continue; // Skip malformed blocks
+                
+                const question = lines[0].trim();
+                const answers = {
+                    a: lines[1].trim(),
+                    b: lines[2].trim(),
+                    c: lines[3].trim(),
+                    d: lines[4].trim()
+                };
+                
+                const answerLine = lines[5].trim().toUpperCase();
+                if (!answerLine.startsWith('ANSWER:')) continue;
+                
+                const correctAnswer = answerLine.substring(7).trim().toLowerCase();
+                if (['a', 'b', 'c', 'd'].includes(correctAnswer)) {
+                    quizData.push({ question, answers, correctAnswer });
+                }
+            }
+            return quizData;
+        }
+        
+        // --- Core Link Generation (used by both methods) ---
+        function generateShareLink(quizData) {
+            if (!quizData || quizData.length === 0) {
+                alert("No valid questions found to create a link.");
+                return;
+            }
             const jsonString = JSON.stringify(quizData);
             const encodedData = btoa(jsonString);
             const quizUrl = `${window.location.href.replace('index.html', '').replace(/\/$/, '')}/quiz.html?data=${encodedData}`;
@@ -88,11 +144,19 @@
             shareLinkInput.value = quizUrl;
             linkContainer.style.display = 'block';
             shareLinkInput.select();
+            window.scrollTo(0, document.body.scrollHeight); // Scroll to bottom to show the link
         }
 
+        // --- Event Listeners ---
         addQuestionBtn.addEventListener('click', addQuestion);
-        generateBtn.addEventListener('click', generateLink);
-        addQuestion(); // Start with one question
+        generateManualBtn.addEventListener('click', () => {
+            const data = getQuizDataFromForm();
+            generateShareLink(data);
+        });
+        createFileBtn.addEventListener('click', handleFileUpload);
+
+        // --- Initial State ---
+        addQuestion(); // Start with one manual question block
     </script>
 </body>
 </html>
