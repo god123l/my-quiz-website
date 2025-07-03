@@ -5,34 +5,33 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quiz Creator</title>
     <link rel="stylesheet" href="style.css">
-    <style>
-        input[type=text], textarea { width: 95%; padding: 8px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 4px; }
-        textarea { height: 60px; }
-        .creator-block { border: 2px dashed #ccc; padding: 15px; margin-bottom: 15px; }
-        #share-link-container { margin-top: 20px; background-color: #e9f5ff; padding: 10px; border-radius: 5px; display: none; }
-        #share-link { width: 100%; padding: 8px; box-sizing: border-box; }
-    </style>
 </head>
 <body>
-    <h1>Create Your Own Quiz</h1>
-    <p>Fill out the form below, or upload a formatted .txt file. A short, shareable link will be generated.</p>
+    <div class="container">
+        <h1>Quiz Creator</h1>
+        <p>Fill out the form below, or upload a formatted .txt file. A short, shareable link will be generated.</p>
 
-    <div class="creator-block">
-        <h3>Upload a Quiz File</h3>
-        <p>Use the 7-line format per question (.txt file).</p>
-        <input type="file" id="quiz-file-input" accept=".txt">
-        <button id="create-from-file-btn">Create Link from File</button>
-    </div>
-    <hr>
-    
-    <h3>Or, Create Manually:</h3>
-    <div id="questions-container"></div>
-    <button id="add-question-btn">Add Another Question</button>
-    <button id="generate-manual-btn">Create Link from Form</button>
-    
-    <div id="share-link-container">
-        <strong>Your quiz is ready! Copy and share this short link:</strong>
-        <input type="text" id="share-link" readonly>
+        <div class="creator-block">
+            <h3>Upload a Quiz File</h3>
+            <p>Use the 7-line format per question (.txt file).</p>
+            <input type="file" id="quiz-file-input" accept=".txt">
+            <button id="create-from-file-btn">Create Link from File</button>
+        </div>
+        
+        <div class="creator-block">
+            <h3>Or, Create Manually:</h3>
+            <div id="questions-container"></div>
+            <button id="add-question-btn">Add Another Question</button>
+            <button id="generate-manual-btn">Create Link from Form</button>
+        </div>
+        
+        <div id="share-link-container">
+            <h3>Your quiz is ready!</h3>
+            <p>You can copy the link below to share it, or start the quiz yourself.</p>
+            <input type="text" id="share-link" readonly>
+            <!-- NEW: Start Quiz Button -->
+            <a href="#" id="start-quiz-btn" class="button-style">Start Quiz Now</a>
+        </div>
     </div>
 
     <script>
@@ -43,12 +42,12 @@
         const createFileBtn = document.getElementById('create-from-file-btn');
         const linkContainer = document.getElementById('share-link-container');
         const shareLinkInput = document.getElementById('share-link');
+        const startQuizBtn = document.getElementById('start-quiz-btn'); // New button
         let questionCount = 0;
 
         function addQuestion() {
             questionCount++;
             const block = document.createElement('div');
-            block.className = 'creator-block';
             block.innerHTML = `<h4>Question ${questionCount}</h4><input type="text" placeholder="Enter your question" class="question-title"><input type="text" placeholder="Answer A" class="answer-a"><input type="text" placeholder="Answer B" class="answer-b"><input type="text" placeholder="Answer C" class="answer-c"><input type="text" placeholder="Answer D" class="answer-d"><input type="text" placeholder="Correct Answer Letter (a, b, c, or d)" class="correct-answer" maxlength="1"><textarea placeholder="Optional: Enter explanation here" class="explanation"></textarea>`;
             questionsContainer.appendChild(block);
         }
@@ -83,27 +82,17 @@
             return quizData;
         }
         
-        // --- THE NEW localStorage BASED LINK GENERATOR ---
         function generateShareLink(quizData) {
             if (!quizData || quizData.length === 0) { alert("No valid questions found."); return; }
             try {
-                // Step 1: Create a unique key for this quiz. A timestamp is perfect.
                 const quizKey = `quiz_${Date.now()}`;
-
-                // Step 2: Convert quiz data to a JSON string.
                 const jsonString = JSON.stringify(quizData);
-
-                // Step 3: Save the entire JSON string to the browser's localStorage.
                 localStorage.setItem(quizKey, jsonString);
-
-                // Step 4: Get the base URL for the quiz player.
                 const baseUrl = window.location.href.replace('index.html', '').replace(/\/$/, '');
-                
-                // Step 5: Construct the final, SHORT URL with only the key.
                 const quizUrl = `${baseUrl}/quiz.html?key=${quizKey}`;
-
-                // Step 6: Display the short URL to the user.
                 shareLinkInput.value = quizUrl;
+                // NEW: Set the 'href' for the redirect button
+                startQuizBtn.href = quizUrl;
                 linkContainer.style.display = 'block';
                 shareLinkInput.select();
 
