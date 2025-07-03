@@ -6,7 +6,8 @@
     <title>Quiz Creator</title>
     <link rel="stylesheet" href="style.css">
     <style>
-        input[type=text] { width: 95%; padding: 8px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 4px; }
+        input[type=text], textarea { width: 95%; padding: 8px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 4px; }
+        textarea { height: 60px; }
         .creator-block { border: 2px dashed #ccc; padding: 15px; margin-bottom: 15px; }
         #share-link-container { margin-top: 20px; background-color: #e9f5ff; padding: 10px; border-radius: 5px; display: none; }
         #share-link { width: 100%; padding: 8px; box-sizing: border-box; }
@@ -14,31 +15,27 @@
 </head>
 <body>
     <h1>Create Your Own Quiz</h1>
-    <p>Fill out the form below, or upload a formatted .txt file.</p>
+    <p>Fill out the form below, or upload a formatted .txt file (now with optional explanations).</p>
 
-    <!-- NEW SECTION: File Upload -->
     <div class="creator-block">
         <h3>Upload a Quiz File</h3>
-        <p>Create a .txt file with your questions and upload it here. See instructions for the format.</p>
+        <p>Use the 7-line format per question (.txt file).</p>
         <input type="file" id="quiz-file-input" accept=".txt">
         <button id="create-from-file-btn">Create Link from File</button>
     </div>
     <hr>
     
-    <!-- Existing form for manual creation -->
     <h3>Or, Create Manually:</h3>
     <div id="questions-container"></div>
     <button id="add-question-btn">Add Another Question</button>
     <button id="generate-manual-btn">Create Link from Form</button>
     
-    <!-- Share link container (used by both methods) -->
     <div id="share-link-container">
         <strong>Your quiz is ready! Copy and share this link:</strong>
         <input type="text" id="share-link" readonly>
     </div>
 
     <script>
-        // --- DOM Elements ---
         const questionsContainer = document.getElementById('questions-container');
         const addQuestionBtn = document.getElementById('add-question-btn');
         const generateManualBtn = document.getElementById('generate-manual-btn');
@@ -48,7 +45,6 @@
         const shareLinkInput = document.getElementById('share-link');
         let questionCount = 0;
 
-        // --- Manual Form Functions ---
         function addQuestion() {
             questionCount++;
             const block = document.createElement('div');
@@ -61,6 +57,7 @@
                 <input type="text" placeholder="Answer C" class="answer-c">
                 <input type="text" placeholder="Answer D" class="answer-d">
                 <input type="text" placeholder="Correct Answer Letter (a, b, c, or d)" class="correct-answer" maxlength="1">
+                <textarea placeholder="Optional: Enter explanation here" class="explanation"></textarea>
             `;
             questionsContainer.appendChild(block);
         }
@@ -74,89 +71,65 @@
                 const answerC = q.querySelector('.answer-c').value;
                 const answerD = q.querySelector('.answer-d').value;
                 const correctAnswer = q.querySelector('.correct-answer').value.toLowerCase();
+                const explanation = q.querySelector('.explanation').value.trim();
                 if (questionTitle && answerA && answerB && answerC && answerD && correctAnswer) {
                     quizData.push({
                         question: questionTitle,
                         answers: { a: answerA, b: answerB, c: answerC, d: answerD },
-                        correctAnswer: correctAnswer
+                        correctAnswer: correctAnswer,
+                        explanation: explanation
                     });
                 }
             });
             return quizData;
         }
 
-        // --- File Upload Functions ---
         function handleFileUpload() {
             const file = fileInput.files[0];
-            if (!file) {
-                alert('Please select a .txt file first!');
-                return;
-            }
+            if (!file) return alert('Please select a file.');
             const reader = new FileReader();
             reader.onload = function(event) {
-                const text = event.target.result;
-                const quizData = parseQuizText(text);
-                if (quizData && quizData.length > 0) {
-                    generateShareLink(quizData);
-                } else {
-                    alert('Could not parse the file. Please check that it follows the correct 6-line format and is separated by blank lines.');
-                }
+                const quizData = parseQuizText(event.target.result);
+                if (quizData && quizData.length > 0) generateShareLink(quizData);
+                else alert('Could not parse the file. Check the 7-line format.');
             };
             reader.readAsText(file);
         }
 
         function parseQuizText(text) {
             const quizData = [];
-            const questionBlocks = text.trim().split(/\n\s*\n/); // Split by one or more newlines (a blank line)
+            const questionBlocks = text.trim().split(/\n\s*\n/);
             for (const block of questionBlocks) {
-                const lines = block.split('\n').filter(line => line.trim() !== '');
-                if (lines.length !== 6) continue; // Skip malformed blocks
+                const lines = block.split('\n');
+                if (lines.length < 6) continue;
                 
-                const question = lines[0].trim();
-                const answers = {
-                    a: lines[1].trim(),
-                    b: lines[2].trim(),
-                    c: lines[3].trim(),
-                    d: lines[4].trim()
-                };
-                
-                const answerLine = lines[5].trim().toUpperCase();
-                if (!answerLine.startsWith('ANSWER:')) continue;
-                
-                const correctAnswer = answerLine.substring(7).trim().toLowerCase();
-                if (['a', 'b', 'c', 'd'].includes(correctAnswer)) {
-                    quizData.push({ question, answers, correctAnswer });
-                }
+                const explanationLine = lines[6] || 'EXPLANATION:';
+                const explanation = explanationLine.startsWith('EXPLANATION:') ? explanationLine.substring(12).trim() : '';
+
+                quizData.push({
+                    question: lines[0].trim(),
+                    answers: { a: lines[1].trim(), b: lines[2].trim(), c: lines[3].trim(), d: lines[4].trim() },
+                    correctAnswer: lines[5].substring(8).trim().toLowerCase(),
+                    explanation: explanation
+                });
             }
             return quizData;
         }
         
-        // --- Core Link Generation (used by both methods) ---
         function generateShareLink(quizData) {
-            if (!quizData || quizData.length === 0) {
-                alert("No valid questions found to create a link.");
-                return;
-            }
+            if (!quizData || quizData.length === 0) return alert("No valid questions found.");
             const jsonString = JSON.stringify(quizData);
-            const encodedData = btoa(jsonString);
+            const encodedData = btoa(unescape(encodeURIComponent(jsonString))); // Better encoding for special characters
             const quizUrl = `${window.location.href.replace('index.html', '').replace(/\/$/, '')}/quiz.html?data=${encodedData}`;
-            
             shareLinkInput.value = quizUrl;
             linkContainer.style.display = 'block';
             shareLinkInput.select();
-            window.scrollTo(0, document.body.scrollHeight); // Scroll to bottom to show the link
         }
 
-        // --- Event Listeners ---
         addQuestionBtn.addEventListener('click', addQuestion);
-        generateManualBtn.addEventListener('click', () => {
-            const data = getQuizDataFromForm();
-            generateShareLink(data);
-        });
+        generateManualBtn.addEventListener('click', () => generateShareLink(getQuizDataFromForm()));
         createFileBtn.addEventListener('click', handleFileUpload);
-
-        // --- Initial State ---
-        addQuestion(); // Start with one manual question block
+        addQuestion();
     </script>
 </body>
 </html>
