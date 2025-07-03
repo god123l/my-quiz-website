@@ -3,18 +3,96 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Awesome Quiz</title>
+    <title>Quiz Creator</title>
     <link rel="stylesheet" href="style.css">
+    <style>
+        /* Styles specific to the creator page */
+        input[type=text] { width: 95%; padding: 8px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 4px; }
+        .creator-block { border: 2px dashed #ccc; padding: 15px; margin-bottom: 15px; }
+        #share-link-container { margin-top: 20px; background-color: #e9f5ff; padding: 10px; border-radius: 5px; display: none; }
+        #share-link { width: 100%; padding: 8px; box-sizing: border-box; }
+    </style>
 </head>
 <body>
-    <h1>Quiz Time!</h1>
-    <div id="quiz-container"></div>
-    <button id="submit-button">Submit Answers</button>
-    <div id="results-container"></div>
+    <h1>Create Your Own Quiz</h1>
+    <p>Fill out the form below, then click "Create & Share Link" to get a unique link for your quiz.</p>
 
+    <div id="questions-container">
+        <!-- Questions will be added here by JavaScript -->
+    </div>
+
+    <button id="add-question-btn">Add Another Question</button>
     <hr>
-    <p>Want to create your own quiz? <a href="create.html">Click here!</a></p>
+    <button id="generate-btn">Create & Share Link</button>
 
-    <script src="script.js"></script>
+    <div id="share-link-container">
+        <strong>Your quiz is ready! Copy and share this link:</strong>
+        <input type="text" id="share-link" readonly>
+    </div>
+
+    <script>
+        const questionsContainer = document.getElementById('questions-container');
+        const addQuestionBtn = document.getElementById('add-question-btn');
+        const generateBtn = document.getElementById('generate-btn');
+        const linkContainer = document.getElementById('share-link-container');
+        const shareLinkInput = document.getElementById('share-link');
+        let questionCount = 0;
+
+        function addQuestion() {
+            questionCount++;
+            const block = document.createElement('div');
+            block.className = 'creator-block';
+            block.innerHTML = `
+                <h3>Question ${questionCount}</h3>
+                <input type="text" placeholder="Enter your question" class="question-title">
+                <input type="text" placeholder="Answer A" class="answer-a">
+                <input type="text" placeholder="Answer B" class="answer-b">
+                <input type="text" placeholder="Answer C" class="answer-c">
+                <input type="text" placeholder="Correct Answer Letter (a, b, or c)" class="correct-answer" maxlength="1">
+            `;
+            questionsContainer.appendChild(block);
+        }
+
+        function generateLink() {
+            const quizData = [];
+            const allQuestions = document.querySelectorAll('.creator-block');
+
+            allQuestions.forEach(q => {
+                const questionTitle = q.querySelector('.question-title').value;
+                const answerA = q.querySelector('.answer-a').value;
+                const answerB = q.querySelector('.answer-b').value;
+                const answerC = q.querySelector('.answer-c').value;
+                const correctAnswer = q.querySelector('.correct-answer').value.toLowerCase();
+                if (questionTitle && answerA && answerB && answerC && correctAnswer) {
+                    quizData.push({
+                        question: questionTitle,
+                        answers: { a: answerA, b: answerB, c: answerC },
+                        correctAnswer: correctAnswer
+                    });
+                }
+            });
+
+            if (quizData.length === 0) {
+                alert("Please create at least one valid question.");
+                return;
+            }
+
+            // Convert the data to a JSON string, then to a Base64 string
+            const jsonString = JSON.stringify(quizData);
+            const encodedData = btoa(jsonString); // btoa() encodes to Base64
+
+            // Create the full URL
+            const quizUrl = `${window.location.href.replace('index.html', '').replace(/\/$/, '')}/quiz.html?data=${encodedData}`;
+
+            // Display the link
+            shareLinkInput.value = quizUrl;
+            linkContainer.style.display = 'block';
+            shareLinkInput.select();
+        }
+
+        addQuestionBtn.addEventListener('click', addQuestion);
+        generateBtn.addEventListener('click', generateLink);
+        addQuestion(); // Start with one question
+    </script>
 </body>
 </html>
