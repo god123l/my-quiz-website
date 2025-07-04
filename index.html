@@ -22,34 +22,37 @@
     </nav>
     <!-- END: MENU HTML -->
 
-    <div class="container">
-        <h1>Quiz Creator</h1>
-        <p>Fill out the form below, or upload a formatted file. This tool now supports both the 7-line .txt format and the Anki-style .csv format.</p>
+    <!-- START: MAIN CONTENT WRAPPER -->
+    <main>
+        <div class="container">
+            <h1>Quiz Creator</h1>
+            <p>Fill out the form below, or upload a formatted file. This tool now supports Anki-style .csv, tab-separated .txt, and 7-line block .txt formats.</p>
 
-        <div class="creator-block">
-            <h3>Upload a Quiz File</h3>
-            <input type="file" id="quiz-file-input" accept=".txt,.csv">
-            <button id="create-from-file-btn">Create Link from File</button>
+            <div class="creator-block">
+                <h3>Upload a Quiz File</h3>
+                <input type="file" id="quiz-file-input" accept=".txt,.csv">
+                <button id="create-from-file-btn">Create Link from File</button>
+            </div>
+            
+            <div class="creator-block">
+                <h3>Or, Create Manually:</h3>
+                <div id="questions-container"></div>
+                <button id="add-question-btn">Add Another Question</button>
+                <button id="generate-manual-btn">Create Link from Form</button>
+            </div>
+            
+            <div id="share-link-container">
+                <h3>Your quiz is ready!</h3>
+                <p>You can copy the link below to share it, or start the quiz yourself.</p>
+                <input type="text" id="share-link" readonly>
+                <a href="#" id="start-quiz-btn" class="button-style">Start Quiz Now</a>
+            </div>
         </div>
-        
-        <div class="creator-block">
-            <h3>Or, Create Manually:</h3>
-            <div id="questions-container"></div>
-            <button id="add-question-btn">Add Another Question</button>
-            <button id="generate-manual-btn">Create Link from Form</button>
-        </div>
-        
-        <div id="share-link-container">
-            <h3>Your quiz is ready!</h3>
-            <p>You can copy the link below to share it, or start the quiz yourself.</p>
-            <input type="text" id="share-link" readonly>
-            <a href="#" id="start-quiz-btn" class="button-style">Start Quiz Now</a>
-        </div>
-    </div>
+    </main>
+    <!-- END: MAIN CONTENT WRAPPER -->
 
     <!-- START: MENU JAVASCRIPT -->
     <script>
-        // --- Improved Menu Toggle Logic ---
         const menuToggle = document.getElementById('menu-toggle');
         const navPanel = document.getElementById('nav-panel');
         const overlay = document.getElementById('overlay');
@@ -67,7 +70,6 @@
             body.classList.toggle('nav-open');
         });
         
-        // Close menu when clicking the overlay
         overlay.addEventListener('click', closeMenu);
     </script>
     <!-- END: MENU JAVASCRIPT -->
@@ -113,7 +115,6 @@
         function parseQuizText(text) {
             const quizData = [];
             const trimmedText = text.trim();
-
             if (trimmedText.startsWith('"Question"')) {
                 const lines = trimmedText.split('\n');
                 const csvRegex = /"([^"]*)"/g;
