@@ -61,22 +61,31 @@
 
         <!-- Section 3: Quiz Player (starts hidden) -->
         <div id="quiz-view" style="display: none;">
-            <div class="container"><!-- Quiz player content will be generated here --></div>
+            <div class="container">
+                <div id="quiz-header"><h2 id="question-counter"></h2><div id="timer">0s</div></div>
+                <div class="question-block"><div class="question" id="question-text"></div><div class="answers" id="answer-options"></div></div>
+                <div id="explanation-box" style="display: none;"><h3>Explanation</h3><p id="explanation-text"></p></div>
+                <button id="submit-btn">Submit Answer</button><button id="next-btn" style="display: none;">Next Question</button>
+            </div>
         </div>
 
         <!-- Section 4: Results View (starts hidden) -->
         <div id="results-view" style="display: none;">
-            <div class="container"><!-- Results content will be generated here --></div>
+            <div class="container">
+                <h2>Quiz Complete!</h2><p id="final-score"></p><p id="total-time"></p><h3>Performance Summary</h3>
+                <div id="results-summary"></div><a href="./index.html" class="button-style secondary-button">Create a New Quiz</a>
+            </div>
         </div>
     </main>
 
     <!-- THE SINGLE, CORRECTED SCRIPT BLOCK -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // --- SUPABASE SETUP (WITH THE FIX) ---
+            // --- SUPABASE SETUP (CORRECTED) ---
             const supabaseUrl = 'https://ptkyeeliwinrrkbvakau.supabase.co';
             const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB0a3llZWxpd2lucnJrYnZha2F1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE2MzM5NTEsImV4cCI6MjA2NzIwOTk1MX0.81-re4H_ubzxSM16dyPvlZwHG8iKvrDoDPV34TKbDEo';
-            const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+            const { createClient } = window.supabase;
+            const supabase = createClient(supabaseUrl, supabaseKey);
 
             // --- DOM ELEMENT REFERENCES ---
             const heroSection = document.getElementById('hero-section');
@@ -146,7 +155,6 @@
                 block.innerHTML = `<h4>Question ${questionCount}</h4><input type="text" placeholder="Enter your question" class="question-title"><input type="text" placeholder="Answer A" class="answer-a"><input type="text" placeholder="Answer B" class="answer-b"><input type="text" placeholder="Answer C" class="answer-c"><input type="text" placeholder="Answer D" class="answer-d"><input type="text" placeholder="Correct Answer Letter (a, b, c, or d)" class="correct-answer" maxlength="1"><textarea placeholder="Optional: Enter explanation here" class="explanation"></textarea>`;
                 questionsContainer.appendChild(block);
             }
-
             function getQuizDataFromForm() {
                 const data = [];
                 document.querySelectorAll('.manual-question-block').forEach(qBlock => {
@@ -163,7 +171,6 @@
                 });
                 return data;
             }
-
             function handleFileUpload() {
                 const file = fileInput.files[0];
                 if (!file) { alert('Please select a file.'); return; }
@@ -172,13 +179,10 @@
                     const data = parseQuizText(event.target.result);
                     if (data && data.length > 0) {
                         generateAndSaveQuiz(data);
-                    } else {
-                        alert('Could not parse the file. Please check the file format.');
-                    }
+                    } else { alert('Could not parse the file. Please check the file format.'); }
                 };
                 reader.readAsText(file);
             }
-            
             function parseQuizText(text) {
                 const data = []; const trimmedText = text.trim();
                 if (trimmedText.startsWith('"Question"')) {
@@ -193,7 +197,6 @@
                 }
                 return data;
             }
-
             async function generateAndSaveQuiz(data) {
                 quizData = data;
                 if (!quizData || quizData.length === 0) { alert("No valid questions found."); return; }
@@ -201,9 +204,7 @@
                 const quizId = Date.now().toString(36) + Math.random().toString(36).substring(2, 7);
                 shareLinkInput.value = 'Saving to cloud...';
                 linkContainer.style.display = 'block';
-
                 const { error } = await supabase.from('quizzes').insert({ short_id: quizId, data: quizData });
-
                 if (error) {
                     console.error('Error saving to Supabase:', error);
                     shareLinkInput.value = 'Error: Could not save quiz.';
@@ -213,33 +214,29 @@
                 const shareableUrl = `${baseUrl}/quiz.html?id=${quizId}`;
                 shareLinkInput.value = shareableUrl;
             }
-            
             startQuizBtn.addEventListener('click', (e) => {
                 e.preventDefault();
                 if (quizData && quizData.length > 0) {
                     creatorSection.style.display = 'none';
                     heroSection.style.display = 'none';
                     startQuiz(quizData);
-                } else {
-                    alert("Please generate a quiz first before starting.");
-                }
+                } else { alert("Please generate a quiz first before starting."); }
             });
-            
             addQuestionBtn.addEventListener('click', addQuestion);
             generateManualBtn.addEventListener('click', () => {
                 const dataFromForm = getQuizDataFromForm();
-                generateAndSaveQuiz(dataFromForm);
+                if(dataFromForm.length > 0) generateAndSaveQuiz(dataFromForm);
+                else alert("Please fill out at least one question completely.");
             });
             createFileBtn.addEventListener('click', handleFileUpload);
-
-            // This placeholder is for the offline player functions, which are not needed here anymore as they were merged.
-            // For clarity, we can remove this block. The startQuiz function is all that's needed for the offline part.
+            
+            // --- QUIZ PLAYER LOGIC (for offline play) ---
             function startQuiz(data) {
-                // This function needs to be fully defined for offline play.
-                // It's missing the actual player logic from quiz.html
-                console.log("Starting offline quiz with:", data);
-                // We will add the full player logic here in the next step if this works.
-                alert("Offline player starting! (This part needs the full player code)");
+                // This will be implemented fully in the final step.
+                // For now, it just switches views.
+                quizView.style.display = 'block';
+                // Placeholder for full logic
+                quizView.innerHTML = `<h1>Quiz Started!</h1><p>Full player logic will go here.</p>`;
             }
 
             // --- INITIALIZATION ---
