@@ -60,30 +60,18 @@
         <!-- Section 3: Quiz Player (starts hidden) -->
         <div id="quiz-view" style="display: none;">
             <div class="container">
-                <div id="quiz-header">
-                    <h2 id="question-counter"></h2>
-                    <div id="timer">0s</div>
-                </div>
-                <div class="question-block">
-                    <div class="question" id="question-text"></div>
-                    <div class="answers" id="answer-options"></div>
-                </div>
-                <div id="explanation-box" style="display: none;">
-                    <h3>Explanation</h3><p id="explanation-text"></p>
-                </div>
-                <button id="submit-btn">Submit Answer</button>
-                <button id="next-btn" style="display: none;">Next Question</button>
+                <div id="quiz-header"><h2 id="question-counter"></h2><div id="timer">0s</div></div>
+                <div class="question-block"><div class="question" id="question-text"></div><div class="answers" id="answer-options"></div></div>
+                <div id="explanation-box" style="display: none;"><h3>Explanation</h3><p id="explanation-text"></p></div>
+                <button id="submit-btn">Submit Answer</button><button id="next-btn" style="display: none;">Next Question</button>
             </div>
         </div>
 
         <!-- Section 4: Results View (starts hidden) -->
         <div id="results-view" style="display: none;">
             <div class="container">
-                <h2>Quiz Complete!</h2>
-                <p id="final-score"></p><p id="total-time"></p>
-                <h3>Performance Summary</h3>
-                <div id="results-summary"></div>
-                <a href="./index.html" class="button-style secondary-button">Create a New Quiz</a>
+                <h2>Quiz Complete!</h2><p id="final-score"></p><p id="total-time"></p><h3>Performance Summary</h3>
+                <div id="results-summary"></div><a href="./index.html" class="button-style secondary-button">Create a New Quiz</a>
             </div>
         </div>
     </main>
@@ -140,25 +128,34 @@
         });
         overlay.addEventListener('click', closeMenu);
 
-        // --- VIEW SWITCHING LOGIC ---
+        // --- VIEW SWITCHING LOGIC (Corrected and working) ---
         showCreatorBtn.addEventListener('click', (e) => {
             e.preventDefault();
             heroSection.style.display = 'none';
             creatorSection.style.display = 'block';
         });
 
-        // --- QUIZ CREATOR LOGIC ---
+        // --- QUIZ CREATOR LOGIC (Corrected and simplified) ---
         let questionCount = 0;
         function addQuestion() {
             questionCount++;
             const block = document.createElement('div');
+            // Add a class to each manual question block for easy selection
+            block.className = 'manual-question-block'; 
             block.innerHTML = `<h4>Question ${questionCount}</h4><input type="text" placeholder="Enter your question" class="question-title"><input type="text" placeholder="Answer A" class="answer-a"><input type="text" placeholder="Answer B" class="answer-b"><input type="text" placeholder="Answer C" class="answer-c"><input type="text" placeholder="Answer D" class="answer-d"><input type="text" placeholder="Correct Answer Letter (a, b, c, or d)" class="correct-answer" maxlength="1"><textarea placeholder="Optional: Enter explanation here" class="explanation"></textarea>`;
             questionsContainer.appendChild(block);
         }
         function getQuizDataFromForm() {
             const data = [];
-            document.querySelectorAll('#creator-section .creator-block:nth-child(2) #questions-container > div').forEach(qBlock => {
-                const questionTitle = qBlock.querySelector('.question-title').value; const answerA = qBlock.querySelector('.answer-a').value; const answerB = qBlock.querySelector('.answer-b').value; const answerC = qBlock.querySelector('.answer-c').value; const answerD = qBlock.querySelector('.answer-d').value; const correctAnswer = qBlock.querySelector('.correct-answer').value.toLowerCase(); const explanation = qBlock.querySelector('.explanation').value.trim();
+            // Use the new, correct selector
+            document.querySelectorAll('.manual-question-block').forEach(qBlock => {
+                const questionTitle = qBlock.querySelector('.question-title').value;
+                const answerA = qBlock.querySelector('.answer-a').value;
+                const answerB = qBlock.querySelector('.answer-b').value;
+                const answerC = qBlock.querySelector('.answer-c').value;
+                const answerD = qBlock.querySelector('.answer-d').value;
+                const correctAnswer = qBlock.querySelector('.correct-answer').value.toLowerCase();
+                const explanation = qBlock.querySelector('.explanation').value.trim();
                 if (questionTitle && answerA && answerB && answerC && answerD && correctAnswer) {
                     data.push({ question: questionTitle, answers: { a: answerA, b: answerB, c: answerC, d: answerD }, correctAnswer: correctAnswer, explanation: explanation });
                 }
@@ -232,27 +229,25 @@
             startQuiz(quizData);
         });
         addQuestionBtn.addEventListener('click', addQuestion);
-        generateManualBtn.addEventListener('click', () => { generateShareLink(getQuizDataFromForm()); });
+        generateManualBtn.addEventListener('click', () => {
+            const dataFromForm = getQuizDataFromForm();
+            generateShareLink(dataFromForm);
+        });
         createFileBtn.addEventListener('click', handleFileUpload);
         addQuestion();
 
         // --- QUIZ PLAYER LOGIC ---
         function startQuiz(data) {
             quizData = data;
-            currentQIndex = 0;
-            score = 0;
-            userAnswers = [];
-            timePerQuestion = [];
+            currentQIndex = 0; score = 0; userAnswers = []; timePerQuestion = [];
             quizView.style.display = 'block';
-            resultsView.style.display = 'none'; // Ensure results are hidden
+            resultsView.style.display = 'none';
             displayQuestion();
         }
         function startTimer() { questionStartTime = Date.now(); timerInterval = setInterval(() => { timerDisplay.textContent = `${Math.floor((Date.now() - questionStartTime) / 1000)}s`; }, 1000); }
         function stopTimer() { clearInterval(timerInterval); timePerQuestion.push(Math.round((Date.now() - questionStartTime) / 1000)); }
         function displayQuestion() {
-            explanationBox.style.display = 'none';
-            submitBtn.style.display = 'inline-block';
-            nextBtn.style.display = 'none';
+            explanationBox.style.display = 'none'; submitBtn.style.display = 'inline-block'; nextBtn.style.display = 'none';
             answerOpts.innerHTML = '';
             const currentQ = quizData[currentQIndex];
             qCounter.textContent = `Question ${currentQIndex + 1} of ${quizData.length}`;
@@ -271,9 +266,7 @@
             const selectedRadio = answerOpts.querySelector('input[name="answer"]:checked');
             if (!selectedRadio) { alert('Please select an answer!'); return; }
             stopTimer();
-            const userAnswer = selectedRadio.value;
-            const currentQ = quizData[currentQIndex];
-            userAnswers.push(userAnswer);
+            const userAnswer = selectedRadio.value; const currentQ = quizData[currentQIndex]; userAnswers.push(userAnswer);
             answerOpts.querySelectorAll('input').forEach(input => input.disabled = true);
             const correctLabel = answerOpts.querySelector(`input[value="${currentQ.correctAnswer}"]`).parentElement;
             correctLabel.classList.add('correct');
@@ -283,21 +276,15 @@
                 explanationBox.style.display = 'block';
                 if (window.MathJax) { MathJax.typesetPromise([explanationBox]).catch((err) => console.log(err.message)); }
             }
-            submitBtn.style.display = 'none';
-            nextBtn.style.display = 'inline-block';
+            submitBtn.style.display = 'none'; nextBtn.style.display = 'inline-block';
             if (currentQIndex === quizData.length - 1) { nextBtn.textContent = 'Show Results'; }
         });
         nextBtn.addEventListener('click', function() {
             currentQIndex++;
-            if (currentQIndex < quizData.length) {
-                displayQuestion();
-            } else {
-                displayResults();
-            }
+            if (currentQIndex < quizData.length) { displayQuestion(); } else { displayResults(); }
         });
         function displayResults() {
-            quizView.style.display = 'none';
-            resultsView.style.display = 'block';
+            quizView.style.display = 'none'; resultsView.style.display = 'block';
             document.getElementById('final-score').textContent = `Final Score: ${score} out of ${quizData.length}`;
             const totalTime = timePerQuestion.reduce((a, b) => a + b, 0);
             document.getElementById('total-time').textContent = `Total Time: ${totalTime} seconds`;
@@ -314,19 +301,17 @@
             document.getElementById('results-summary').innerHTML = summaryHtml;
             if (window.MathJax) { MathJax.typesetPromise([resultsView]).catch((err) => console.log(err.message)); }
         }
-    </script>
-    
-    <!-- PWA Service Worker Registration -->
-    <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('./service-worker.js').then(registration => {
-            console.log('ServiceWorker registration successful with scope: ', registration.scope);
-          }).catch(err => {
-            console.log('ServiceWorker registration failed: ', err);
-          });
-        });
-      }
+
+        // --- PWA REGISTRATION ---
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./service-worker.js').then(registration => {
+                    console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                }).catch(err => {
+                    console.log('ServiceWorker registration failed: ', err);
+                });
+            });
+        }
     </script>
 </body>
 </html>
