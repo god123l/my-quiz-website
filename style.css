@@ -1,16 +1,13 @@
-/* Design-Inspired Stylesheet */
 :root {
-    --bg-color: #f8f9fa; /* Off-white background */
+    --bg-color: #f0f2f5;
     --card-bg-color: #ffffff;
-    --text-color: #212529; /* Dark charcoal/black text */
-    --secondary-text-color: #6c757d;
-    --primary-color: #0d6efd; /* Bright blue for buttons/links */
+    --text-color: #1c1e21;
+    --secondary-text-color: #65676b;
+    --primary-color: #0d6efd;
     --primary-hover-color: #0b5ed7;
-    --border-color: #dee2e6;
-    --shadow-color: rgba(0, 0, 0, 0.05);
-    /* Other colors for consistency */
     --accent-color: #6c757d;
     --accent-hover-color: #5c636a;
+    --border-color: #dee2e6;
     --success-bg-color: #d1e7dd;
     --success-text-color: #0f5132;
     --success-border-color: #badbcc;
@@ -20,6 +17,7 @@
     --info-bg-color: #cff4fc;
     --info-text-color: #055160;
     --info-border-color: #b6effb;
+    --shadow-color: rgba(0, 0, 0, 0.05);
     --nav-width: 280px;
 }
 
@@ -46,6 +44,8 @@ body {
 
 main {
     padding: 20px;
+    position: relative; /* This is important for stacking context */
+    z-index: 1;      /* The main content is on layer 1 */
 }
 
 .container {
@@ -55,49 +55,13 @@ main {
     margin-right: auto;
 }
 
-/* --- NEW HERO SECTION STYLES --- */
-.hero-section {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    min-height: 85vh;
-}
-
-.hero-section h1 {
-    font-size: clamp(2.5rem, 8vw, 4.5rem); /* Responsive font size */
-    font-weight: 800;
-    color: var(--text-color);
-    margin-bottom: 0.5rem;
-    letter-spacing: -1px;
-}
-
-.hero-section p {
-    font-size: clamp(1rem, 4vw, 1.25rem);
-    max-width: 500px;
-    margin-bottom: 2.5rem;
-    color: var(--secondary-text-color);
-}
-
-.hero-section .button-style {
-    padding: 16px 48px;
-    font-size: 1.1rem;
-    font-weight: 700;
-    border-radius: 50px; /* Fully rounded button */
-    box-shadow: 0 4px 15px rgba(0, 123, 255, 0.2);
-}
-
-/* --- EXISTING STYLES ADAPTED TO NEW PALETTE --- */
 h1, h2, h3 { color: var(--primary-color); margin-top: 0; }
-.creator-block, .question-block { background-color: var(--card-bg-color); padding: 20px; border-radius: 12px; margin-bottom: 25px; border: 1px solid var(--border-color); box-shadow: 0 4px 12px var(--shadow-color); }
-button, a.button-style { background-color: var(--primary-color); color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 600; margin-top: 10px; text-decoration: none; display: inline-block; transition: background-color 0.2s ease, transform 0.1s ease; }
-button:hover, a.button-style:hover { background-color: var(--primary-hover-color); transform: translateY(-1px); }
-
-/* --- ALL OTHER STYLES (menu, inputs, etc.) REMAIN THE SAME --- */
 p { color: var(--secondary-text-color); }
+.creator-block, .question-block { background-color: var(--card-bg-color); padding: 20px; border-radius: 12px; margin-bottom: 25px; border: 1px solid var(--border-color); box-shadow: 0 4px 12px var(--shadow-color); }
 input[type=text], textarea { width: 100%; padding: 12px; margin-bottom: 12px; border: 1px solid var(--border-color); border-radius: 8px; background-color: var(--bg-color); color: var(--text-color); box-sizing: border-box; }
 textarea { height: 80px; resize: vertical; }
+button, a.button-style { background-color: var(--primary-color); color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 600; margin-top: 10px; text-decoration: none; display: inline-block; transition: background-color 0.2s ease, transform 0.1s ease; }
+button:hover, a.button-style:hover { background-color: var(--primary-hover-color); transform: translateY(-1px); }
 button:disabled { background-color: var(--accent-color); cursor: not-allowed; transform: none; }
 a.secondary-button { background-color: var(--accent-color); }
 a.secondary-button:hover { background-color: var(--accent-hover-color); }
@@ -119,16 +83,69 @@ a.secondary-button:hover { background-color: var(--accent-hover-color); }
 .prompt-box pre { white-space: pre-wrap; word-wrap: break-word; margin: 0; font-size: 0.9em; color: var(--secondary-text-color); }
 #copy-prompt-btn { position: absolute; top: 10px; right: 10px; }
 .back-button { margin-bottom: 20px; }
-.menu-toggle { position: fixed; top: 25px; right: 25px; width: 30px; height: 25px; cursor: pointer; z-index: 1002; display: flex; flex-direction: column; justify-content: space-between; }
-.menu-toggle span { display: block; width: 100%; height: 3px; background-color: var(--text-color); border-radius: 3px; transition: all 0.3s ease-in-out; }
+
+/* --- MENU STYLES (FINAL, Z-INDEX FIX) --- */
+.menu-toggle {
+    position: fixed;
+    top: 25px;
+    right: 25px;
+    width: 30px;
+    height: 25px;
+    cursor: pointer;
+    z-index: 1002; /* Highest layer */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+.menu-toggle span {
+    display: block;
+    width: 100%;
+    height: 3px;
+    background-color: var(--text-color);
+    border-radius: 3px;
+    transition: all 0.3s ease-in-out;
+}
 .menu-toggle.is-active span:nth-child(1) { transform: translateY(11px) rotate(45deg); }
 .menu-toggle.is-active span:nth-child(2) { opacity: 0; }
 .menu-toggle.is-active span:nth-child(3) { transform: translateY(-11px) rotate(-45deg); }
-.nav-panel { position: fixed; top: 0; right: 0; width: var(--nav-width); height: 100%; background-color: var(--card-bg-color); box-shadow: -5px 0 15px rgba(0,0,0,0.2); z-index: 1001; padding: 80px 20px 20px; transform: translateX(100%); transition: transform 0.3s ease-in-out; }
-.nav-panel.open { transform: translateX(0); }
+
+.nav-panel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: var(--nav-width);
+    height: 100%;
+    background-color: var(--card-bg-color);
+    box-shadow: -5px 0 15px rgba(0,0,0,0.2);
+    z-index: 1001; /* Layer above the overlay */
+    transform: translateX(100%);
+    transition: transform 0.3s ease-in-out;
+}
+.nav-panel.open {
+    transform: translateX(0);
+}
 .nav-panel ul { list-style: none; padding: 0; }
 .nav-panel ul li a { display: block; padding: 15px 10px; color: var(--text-color); text-decoration: none; font-size: 1.1em; font-weight: 500; border-radius: 8px; transition: background-color 0.2s; }
 .nav-panel ul li a:hover { background-color: var(--bg-color); }
-.overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); z-index: 1000; opacity: 0; visibility: hidden; transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out; }
-.overlay.open { opacity: 1; visibility: visible; }
-body.nav-open { overflow: hidden; }
+
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000; /* Layer above the main content */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+}
+.overlay.open {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Prevent body scroll when menu is open */
+body.nav-open {
+    overflow: hidden;
+}
