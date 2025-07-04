@@ -7,14 +7,27 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <!-- START: MENU HTML -->
+    <div class="menu-toggle" id="menu-toggle">
+        <span></span>
+        <span></span>
+        <span></span>
+    </div>
+    <div class="overlay" id="overlay"></div>
+    <nav class="nav-panel" id="nav-panel">
+        <ul>
+            <li><a href="how-to.html">How to Create a File?</a></li>
+            <li><a href="https://360pwatcher.github.io/Anilist/" target="_blank">Contact Us</a></li>
+        </ul>
+    </nav>
+    <!-- END: MENU HTML -->
+
     <div class="container">
         <h1>Quiz Creator</h1>
-        <!-- Updated descriptive text -->
         <p>Fill out the form below, or upload a formatted file. This tool now supports both the 7-line .txt format and the Anki-style .csv format.</p>
 
         <div class="creator-block">
             <h3>Upload a Quiz File</h3>
-            <!-- Updated input to accept both .txt and .csv -->
             <input type="file" id="quiz-file-input" accept=".txt,.csv">
             <button id="create-from-file-btn">Create Link from File</button>
         </div>
@@ -34,8 +47,33 @@
         </div>
     </div>
 
+    <!-- START: MENU JAVASCRIPT -->
     <script>
-        // All other functions remain the same. Only parseQuizText is new.
+        // --- Improved Menu Toggle Logic ---
+        const menuToggle = document.getElementById('menu-toggle');
+        const navPanel = document.getElementById('nav-panel');
+        const overlay = document.getElementById('overlay');
+        const body = document.body;
+
+        function closeMenu() {
+            navPanel.classList.remove('open');
+            overlay.classList.remove('open');
+            body.classList.remove('nav-open');
+        }
+
+        menuToggle.addEventListener('click', () => {
+            navPanel.classList.toggle('open');
+            overlay.classList.toggle('open');
+            body.classList.toggle('nav-open');
+        });
+        
+        // Close menu when clicking the overlay
+        overlay.addEventListener('click', closeMenu);
+    </script>
+    <!-- END: MENU JAVASCRIPT -->
+
+    <!-- START: CREATOR PAGE JAVASCRIPT -->
+    <script>
         const questionsContainer = document.getElementById('questions-container');
         const addQuestionBtn = document.getElementById('add-question-btn');
         const generateManualBtn = document.getElementById('generate-manual-btn');
@@ -72,52 +110,33 @@
             reader.readAsText(file);
         }
 
-        // --- THIS IS THE NEW, SMARTER PARSING FUNCTION ---
         function parseQuizText(text) {
             const quizData = [];
             const trimmedText = text.trim();
 
-            // Heuristic: Check if the file starts like a CSV from the Anki prompt.
             if (trimmedText.startsWith('"Question"')) {
-                // --- CSV PARSING LOGIC ---
                 const lines = trimmedText.split('\n');
-                const csvRegex = /"([^"]*)"/g; // Safely extracts content from within quotes.
-
-                // Start from the second line to skip the header.
+                const csvRegex = /"([^"]*)"/g;
                 for (let i = 1; i < lines.length; i++) {
-                    const line = lines[i];
-                    if (!line) continue;
-
-                    const fields = Array.from(line.matchAll(csvRegex), m => m[1]);
-                    
-                    // A valid line has at least 7 fields (Question to Explanation).
-                    if (fields.length < 7) {
-                        console.warn("Skipping malformed CSV line:", line);
-                        continue;
-                    }
-
-                    const questionData = {
-                        question: fields[0],
-                        answers: { a: fields[1], b: fields[2], c: fields[3], d: fields[4] },
-                        correctAnswer: fields[5].trim().toLowerCase(), // Convert 'A' -> 'a'
-                        explanation: fields[6]
-                    };
-                    quizData.push(questionData);
+                    const fields = Array.from(lines[i].matchAll(csvRegex), m => m[1]);
+                    if (fields.length < 7) continue;
+                    quizData.push({ question: fields[0], answers: { a: fields[1], b: fields[2], c: fields[3], d: fields[4] }, correctAnswer: fields[5].trim().toLowerCase(), explanation: fields[6] });
+                }
+            } else if (trimmedText.includes('\t')) {
+                const lines = trimmedText.split('\n');
+                for (const line of lines) {
+                    if (line.startsWith('#') || !line.trim()) continue;
+                    const fields = line.split('\t');
+                    if (fields.length < 7) continue;
+                    quizData.push({ question: fields[0], answers: { a: fields[1], b: fields[2], c: fields[3], d: fields[4] }, correctAnswer: fields[5].trim().toLowerCase(), explanation: fields[6] });
                 }
             } else {
-                // --- TXT PARSING LOGIC (The old way) ---
                 const questionBlocks = trimmedText.split(/\n\s*\n/);
                 for (const block of questionBlocks) {
                     const lines = block.split('\n'); if (lines.length < 6) continue;
                     const explanationLine = lines[6] || 'EXPLANATION:';
                     const explanation = explanationLine.startsWith('EXPLANATION:') ? explanationLine.substring(12).trim() : '';
-                    const questionData = {
-                        question: lines[0].trim(),
-                        answers: { a: lines[1].trim(), b: lines[2].trim(), c: lines[3].trim(), d: lines[4].trim() },
-                        correctAnswer: lines[5].substring(8).trim().toLowerCase(),
-                        explanation: explanation
-                    };
-                    quizData.push(questionData);
+                    quizData.push({ question: lines[0].trim(), answers: { a: lines[1].trim(), b: lines[2].trim(), c: lines[3].trim(), d: lines[4].trim() }, correctAnswer: lines[5].substring(8).trim().toLowerCase(), explanation: explanation });
                 }
             }
             return quizData;
@@ -146,52 +165,6 @@
         createFileBtn.addEventListener('click', handleFileUpload);
         addQuestion();
     </script>
+    <!-- END: CREATOR PAGE JAVASCRIPT -->
 </body>
-    <!-- The ENTIRE index.html file should now look like this -->
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quiz Creator</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
-    <!-- START: NEW MENU HTML -->
-    <div class="menu-toggle" id="menu-toggle">
-        <span></span>
-        <span></span>
-        <span></span>
-    </div>
-    <nav class="nav-panel" id="nav-panel">
-        <ul>
-            <li><a href="how-to.html">How to Create a File?</a></li>
-            <li><a href="https://360pwatcher.github.io/Anilist/" target="_blank">Contact Us</a></li>
-        </ul>
-    </nav>
-    <!-- END: NEW MENU HTML -->
-
-    <div class="container">
-        <h1>Quiz Creator</h1>
-        <!-- ... the rest of your creator page content ... -->
-    </div>
-
-    <!-- START: NEW MENU JAVASCRIPT -->
-    <script>
-        // --- Menu Toggle Logic ---
-        const menuToggle = document.getElementById('menu-toggle');
-        const navPanel = document.getElementById('nav-panel');
-
-        menuToggle.addEventListener('click', () => {
-            navPanel.classList.toggle('open');
-        });
-    </script>
-    <!-- END: NEW MENU JAVASCRIPT -->
-
-    <script>
-        // --- Your existing creator page JavaScript ---
-        // ... (the entire <script> block with localStorage logic) ...
-    </script>
-</body>
-</html>
 </html>
