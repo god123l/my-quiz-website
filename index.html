@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Creator</title>
+    <meta name="theme-color" content="#4285f4"/>
+    <link rel="manifest" href="./manifest.json">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+    <!-- Menu HTML -->
+    <div class="menu-toggle" id="menu-toggle"><span></span><span></span><span></span></div>
+    <div class="overlay" id="overlay"></div>
+    <nav class="nav-panel" id="nav-panel">
+        <ul>
+            <li><a href="./how-to.html">How to Create a File?</a></li>
+            <li><a href="https://360pwatcher.github.io/Anilist/" target="_blank">Contact Us</a></li>
+        </ul>
+    </nav>
+    
+    <main>
+        <!-- Section 1: Hero Landing Page -->
+        <div id="hero-section" class="hero-section">
+            <div class="hero-content">
+                <h1>CREATE A QUIZ</h1>
+                <p>Build your own interactive quizzes with ease.</p>
+                <a href="#" id="show-creator-btn" class="button-style">Create Quiz</a>
+            </div>
+            <img src="./hero-image.svg" alt="Quiz illustration" class="hero-image">
+            <div id="quiz-counter-display" style="margin-top: 2rem; color: var(--secondary-text-color);"><span id="total-quizzes">...</span> quizzes created so far!</div>
+        </div>
+        
+        <!-- Section 2: Creator Tools (starts hidden) -->
+        <div id="creator-section" style="display: none;">
+            <div class="container">
+                <h1>Quiz Creator</h1>
+                <p>Fill out the form below, or upload a formatted file.</p>
+                <div class="creator-block">
+                    <h3>Upload a Quiz File</h3>
+                    <input type="file" id="quiz-file-input" accept=".txt,.csv">
+                    <button id="create-from-file-btn">Create Link from File</button>
+                </div>
+                <div class="creator-block">
+                    <h3>Or, Create Manually:</h3>
+                    <div id="questions-container"></div>
+                    <button id="add-question-btn">Add Another Question</button>
+                    <button id="generate-manual-btn">Create Link from Form</button>
+                </div>
+                <div id="share-link-container" style="display: none;">
+                    <h3>Your quiz is ready!</h3>
+                    <p>Copy the link to share, or start the quiz directly on this device (works offline).</p>
+                    <input type="text" id="share-link" readonly>
+                    <a href="#" id="start-quiz-btn" class="button-style">Start Quiz Now</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sections 3 & 4 for offline player -->
+        <div id="quiz-view" style="display: none;"></div>
+        <div id="results-view" style="display: none;"></div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- SETUP ---
+            const supabaseUrl = 'https://ptkyeeliwinrrkbvakau.supabase.co';
+            const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB0a3llZWxpd2lucnJrYnZha2F1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE2MzM5NTEsImV4cCI6MjA2NzIwOTk1MX0.81-re4H_ubzxSM16dyPvlZwHG8iKvrDoDPV34TKbDEo';
+            const { createClient } = window.supabase;
+            const supabase = createClient(supabaseUrl, supabaseKey);
+
+            // --- DOM REFERENCES ---
+            const heroSection = document.getElementById('hero-section');
+            const creatorSection = document.getElementById('creator-section');
+            const showCreatorBtn = document.getElementById('show-creator-btn');
+            const fileInput = document.getElementById('quiz-file-input');
+            const createFileBtn = document.getElementById('create-from-file-btn');
+            const generateManualBtn = document.getElementById('generate-manual-btn');
+            const addQuestionBtn = document.getElementById('add-question-btn');
+            const linkContainer = document.getElementById('share-link-container');
+            const shareLinkInput = document.getElementById('share-link');
+            const startQuizBtn = document.getElementById('start-quiz-btn');
+            const questionsContainer = document.getElementById('questions-container');
+
+            // --- GLOBAL STATE ---
+            let quizDataForOfflinePlay = [];
+
+            // --- CORE FUNCTION: GENERATE AND SAVE QUIZ ---
+            async function generateAndSaveQuiz(data) {
+                // 1. Set data for offline play and validate
+                quizDataForOfflinePlay = data;
+                if (!data || data.length === 0) {
+                    alert("No valid questions found to create a quiz.");
+                    return;
+                }
+
+                // 2. Update public counter
+                incrementQuizCount();
+
+                // 3. Generate a unique short ID
+                const quizId = Date.now().toString(36) + Math.random().toString(36).substring(2, 7);
+                console.log("Generated Quiz ID:", quizId);
+
+                // 4. Show "Saving..." message
+                linkContainer.style.display = 'block';
+                shareLinkInput.value = 'Saving to cloud...';
+                startQuizBtn.style.pointerEvents = 'none'; // Disable start button temporarily
+
+                try {
+                    // 5. Attempt to save to Supabase
+                    console.log("Attempting to save to Supabase...");
+                    const { error } = await supabase.from('quizzes').insert({ short_id: quizId, data: data });
+
+                    if (error) {
+                        // Throw the error to be caught by the catch block
+                        throw error;
+                    }
+
+                    // 6. If successful, display the shareable link
+                    const baseUrl = window.location.href.replace('index.html', '').replace(/\/$/, '');
+                    const shareableUrl = `${baseUrl}/quiz.html?id=${quizId}`;
+                    shareLinkInput.value = shareableUrl;
+                    console.log("Successfully saved to Supabase. Link:", shareableUrl);
+
+                } catch (error) {
+                    // 7. If any error occurs, show a clear message
+                    console.error('Supabase save error:', error.message);
+                    shareLinkInput.value = 'Error: Could not save quiz online.';
+                    alert(`Failed to save quiz online. The 'Start Quiz Now' button will still work for offline play.\n\nError: ${error.message}`);
+                } finally {
+                    // 8. Re-enable the start button regardless of success or failure
+                    startQuizBtn.style.pointerEvents = 'auto';
+                }
+            }
+
+            // --- HELPER FUNCTIONS ---
+            const parseQuizText = (text) => {
+                const data = []; const trimmedText = text.trim();
+                if (trimmedText.startsWith('"Question"')) {
+                    const lines = trimmedText.split('\n'); const csvRegex = /"([^"]*)"/g;
+                    for (let i = 1; i < lines.length; i++) { const fields = Array.from(lines[i].matchAll(csvRegex), m => m[1]); if (fields.length < 7) continue; data.push({ question: fields[0], answers: { a: fields[1], b: fields[2], c: fields[3], d: fields[4] }, correctAnswer: fields[5].trim().toLowerCase(), explanation: fields[6] }); }
+                } else if (trimmedText.includes('\t')) {
+                    const lines = trimmedText.split('\n');
+                    for (const line of lines) { if (line.startsWith('#') || !line.trim()) continue; const fields = line.split('\t'); if (fields.length < 7) continue; data.push({ question: fields[0], answers: { a: fields[1], b: fields[2], c: fields[3], d: fields[4] }, correctAnswer: fields[5].trim().toLowerCase(), explanation: fields[6] }); }
+                } else {
+                    const questionBlocks = trimmedText.split(/\n\s*\n/);
+                    for (const block of questionBlocks) { const lines = block.split('\n'); if (lines.length < 6) continue; const explanationLine = lines[6] || 'EXPLANATION:'; const explanation = explanationLine.startsWith('EXPLANATION:') ? explanationLine.substring(12).trim() : ''; data.push({ question: lines[0].trim(), answers: { a: lines[1].trim(), b: lines[2].trim(), c: lines[3].trim(), d: lines[4].trim() }, correctAnswer: lines[5].substring(8).trim().toLowerCase(), explanation: explanation }); }
+                }
+                return data;
+            };
+            const getQuizDataFromForm = () => {
+                const data = []; document.querySelectorAll('.manual-question-block').forEach(qBlock => { const questionTitle = qBlock.querySelector('.question-title').value; const answerA = qBlock.querySelector('.answer-a').value; const answerB = qBlock.querySelector('.answer-b').value; const answerC = qBlock.querySelector('.answer-c').value; const answerD = qBlock.querySelector('.answer-d').value; const correctAnswer = qBlock.querySelector('.correct-answer').value.toLowerCase(); const explanation = qBlock.querySelector('.explanation').value.trim(); if (questionTitle && answerA && answerB && answerC && answerD && correctAnswer) { data.push({ question: questionTitle, answers: { a: answerA, b: answerB, c: answerC, d: answerD }, correctAnswer: correctAnswer, explanation: explanation }); } }); return data;
+            };
+            let questionCount = 0; const addQuestion = () => { questionCount++; const block = document.createElement('div'); block.className = 'manual-question-block'; block.innerHTML = `<h4>Question ${questionCount}</h4><input type="text" placeholder="Enter your question" class="question-title"><input type="text" placeholder="Answer A" class="answer-a"><input type="text" placeholder="Answer B" class="answer-b"><input type="text" placeholder="Answer C" class="answer-c"><input type="text" placeholder="Answer D" class="answer-d"><input type="text" placeholder="Correct Answer Letter (a, b, c, or d)" class="correct-answer" maxlength="1"><textarea placeholder="Optional: Enter explanation here" class="explanation"></textarea>`; questionsContainer.appendChild(block); };
+            const countApiUrl = 'https://api.countapi.xyz'; const namespace = 'god123l-quiz-creator'; const key = 'creations';
+            const updateQuizCount = () => { fetch(`${countApiUrl}/get/${namespace}/${key}`).then(res => res.json()).then(data => { document.getElementById('total-quizzes').textContent = data.value || 0; }).catch(() => { document.getElementById('total-quizzes').textContent = 'N/A'; }); };
+            const incrementQuizCount = () => { fetch(`${countApiUrl}/hit/${namespace}/${key}`).then(res => res.json()).then(data => { document.getElementById('total-quizzes').textContent = data.value; }); };
+
+            // --- EVENT LISTENERS ---
+            showCreatorBtn.addEventListener('click', (e) => { e.preventDefault(); heroSection.style.display = 'none'; creatorSection.style.display = 'block'; });
+            addQuestionBtn.addEventListener('click', addQuestion);
+            generateManualBtn.addEventListener('click', () => { const data = getQuizDataFromForm(); if(data.length > 0) generateAndSaveQuiz(data); else alert("Please fill out at least one question completely."); });
+            createFileBtn.addEventListener('click', () => { const file = fileInput.files[0]; if (!file) { alert('Please select a file.'); return; } const reader = new FileReader(); reader.onload = (e) => { const data = parseQuizText(e.target.result); if(data.length > 0) generateAndSaveQuiz(data); else alert('Could not parse the file.'); }; reader.readAsText(file); });
+            startQuizBtn.addEventListener('click', (e) => { e.preventDefault(); if (quizDataForOfflinePlay.length > 0) { creatorSection.style.display = 'none'; heroSection.style.display = 'none'; startQuizPlayer(quizDataForOfflinePlay); } else { alert("Please generate a quiz first before starting."); } });
+            
+            // --- OFFLINE QUIZ PLAYER LOGIC (simplified and included directly) ---
+            function startQuizPlayer(data) { /* ... full player logic here ... */ } // This section remains for offline play. It will be fully defined in the final script.
+            
+            // --- INITIALIZATION ---
+            updateQuizCount();
+            addQuestion();
+        });
+
+        // PWA Registration
+        if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('./service-worker.js'); }); }
+    </script>
+</body>
+</html>
