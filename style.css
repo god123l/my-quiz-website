@@ -20,7 +20,7 @@
     --info-text-color: #055160;
     --info-border-color: #b6effb;
     --shadow-color: rgba(0, 0, 0, 0.1);
-    --nav-width: 280px; /* Define nav width as a variable */
+    --nav-width: 280px;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -52,7 +52,6 @@ body {
     line-height: 1.6;
     margin: 0;
     padding: 20px;
-    transition: margin-right 0.3s ease-in-out; /* For content push */
 }
 
 .container {
@@ -60,9 +59,11 @@ body {
     width: 100%;
     margin-left: auto;
     margin-right: auto;
+    /* NEW: Add transition for the push effect */
+    transition: transform 0.3s ease-in-out;
 }
 
-/* --- ALL OTHER STYLES (h1, p, buttons, etc.) REMAIN THE SAME AS BEFORE --- */
+/* --- THE REST OF THE STYLES ARE THE SAME --- */
 h1, h2, h3 { color: var(--primary-color); margin-top: 0; }
 p { color: var(--secondary-text-color); }
 .creator-block, .question-block { background-color: var(--card-bg-color); padding: 20px; border-radius: 12px; margin-bottom: 25px; border: 1px solid var(--border-color); box-shadow: 0 4px 12px var(--shadow-color); }
@@ -92,67 +93,32 @@ a.secondary-button:hover { background-color: var(--accent-hover-color); }
 #copy-prompt-btn { position: absolute; top: 10px; right: 10px; }
 .back-button { margin-bottom: 20px; }
 
-
-/* --- NEW AND IMPROVED MENU STYLES --- */
-.menu-toggle {
-    position: fixed;
-    top: 25px;
-    right: 25px;
-    width: 30px;
-    height: 25px;
-    cursor: pointer;
-    z-index: 1002; /* Must be on top */
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-}
-.menu-toggle span {
-    display: block;
-    width: 100%;
-    height: 3px;
-    background-color: var(--text-color);
-    border-radius: 3px;
-    transition: all 0.3s ease-in-out;
-}
-.nav-panel {
-    position: fixed;
-    top: 0;
-    right: calc(-1 * var(--nav-width)); /* Start off-screen */
-    width: var(--nav-width);
-    height: 100%;
-    background-color: var(--card-bg-color);
-    box-shadow: -5px 0 15px rgba(0,0,0,0.2);
-    z-index: 1001;
-    transition: right 0.3s ease-in-out;
-    padding: 80px 20px 20px;
-}
-.nav-panel.open {
-    right: 0;
-}
+/* --- MENU STYLES (WITH THE FIX) --- */
+.menu-toggle { position: fixed; top: 25px; right: 25px; width: 30px; height: 25px; cursor: pointer; z-index: 1002; display: flex; flex-direction: column; justify-content: space-between; }
+.menu-toggle span { display: block; width: 100%; height: 3px; background-color: var(--text-color); border-radius: 3px; transition: all 0.3s ease-in-out; }
+.nav-panel { position: fixed; top: 0; right: calc(-1 * var(--nav-width)); width: var(--nav-width); height: 100%; background-color: var(--card-bg-color); box-shadow: -5px 0 15px rgba(0,0,0,0.2); z-index: 1001; transition: right 0.3s ease-in-out; padding: 80px 20px 20px; }
+.nav-panel.open { right: 0; }
 .nav-panel ul { list-style: none; padding: 0; }
 .nav-panel ul li a { display: block; padding: 15px 10px; color: var(--text-color); text-decoration: none; font-size: 1.1em; font-weight: 500; border-radius: 8px; transition: background-color 0.2s; }
 .nav-panel ul li a:hover { background-color: var(--bg-color); }
+.overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); z-index: 1000; opacity: 0; visibility: hidden; transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out; }
+.overlay.open { opacity: 1; visibility: visible; }
 
-/* The overlay for dimming content */
-.overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    z-index: 1000;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
-}
-.overlay.open {
-    opacity: 1;
-    visibility: visible;
-}
-
-/* NEW: The body push effect when menu is open */
+/*
+ * THE FIX:
+ * Instead of pushing the body, we now transform the .container
+ * and prevent the body from scrolling.
+ */
 body.nav-open {
-    margin-right: var(--nav-width);
-    overflow: hidden; /* Prevents scrolling of main content */
+    overflow: hidden;
+}
+body.nav-open .container {
+    transform: translateX(calc(-1 * var(--nav-width) / 2));
+}
+
+/* Media query for wider screens to make push less aggressive */
+@media (min-width: 768px) {
+    body.nav-open .container {
+        transform: translateX(calc(-1 * var(--nav-width)));
+    }
 }
