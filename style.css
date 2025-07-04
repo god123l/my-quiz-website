@@ -1,4 +1,3 @@
-/* Final, Optimized Stylesheet for SPA */
 :root {
     --bg-color: #f8f9fa;
     --card-bg-color: #ffffff;
@@ -8,7 +7,6 @@
     --primary-hover-color: #0b5ed7;
     --border-color: #dee2e6;
     --shadow-color: rgba(0, 0, 0, 0.05);
-    /* Other colors for consistency */
     --accent-color: #6c757d;
     --accent-hover-color: #5c636a;
     --success-bg-color: #d1e7dd;
@@ -22,92 +20,34 @@
     --info-border-color: #b6effb;
     --nav-width: 280px;
 }
-
-/* Dark mode inspired by your "Batman" image */
 @media (prefers-color-scheme: dark) {
     :root {
         --bg-color: #121212;
         --card-bg-color: #1e1e1e;
         --text-color: #e8eaed;
         --secondary-text-color: #9aa0a6;
-        --primary-color: #4285f4; /* A brighter blue for dark backgrounds */
+        --primary-color: #4285f4;
         --primary-hover-color: #3b78e7;
         --border-color: #3c4043;
         --shadow-color: rgba(0, 0, 0, 0.3);
     }
 }
-
-body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    background-color: var(--bg-color);
-    color: var(--text-color);
-    line-height: 1.6;
-    margin: 0;
-}
-
-main {
-    padding: 20px;
-}
-
-.container {
-    max-width: 700px;
-    width: 100%;
-    margin-left: auto;
-    margin-right: auto;
-}
-
-/* --- HERO SECTION STYLES (CORRECTED AND OPTIMIZED) --- */
-.hero-section {
-    display: flex;
-    flex-direction: column;
-    align-items: center;    /* Center horizontally */
-    justify-content: center; /* Center vertically */
-    text-align: center;
-    /* Make it take up the full screen height minus padding */
-    min-height: calc(100vh - 40px); 
-    box-sizing: border-box;
-}
-
-.hero-section h1 {
-    font-size: clamp(2rem, 10vw, 3.5rem); /* Responsive font size */
-    font-weight: 700;
-    color: var(--text-color);
-    margin: 0;
-    letter-spacing: -1px;
-    text-transform: uppercase;
-}
-
-.hero-section p {
-    font-size: clamp(1rem, 4vw, 1.2rem);
-    max-width: 500px;
-    margin: 1rem 0 2rem 0; /* Consistent spacing */
-    color: var(--secondary-text-color);
-}
-
-.hero-section .button-style {
-    padding: 14px 40px;
-    font-size: 1rem;
-    font-weight: 600;
-    border-radius: 8px; /* Changed from pill shape to match image */
-    box-shadow: 0 4px 15px rgba(0, 123, 255, 0.2);
-}
-
-.hero-image {
-    max-width: 350px; /* Control max size on larger screens */
-    width: 80%;       /* Make it responsive on smaller screens */
-    height: auto;     /* Maintain aspect ratio */
-    margin-top: 3rem; /* Add space above the image */
-}
-
-/* Hide sections that are not active */
-#creator-section, #quiz-view, #results-view {
-    display: none;
-}
-
-
-/* --- ALL OTHER STYLES REMAIN THE SAME --- */
-h1, h2, h3 { color: var(--primary-color); margin-top: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: var(--bg-color); color: var(--text-color); line-height: 1.6; margin: 0; }
+main { padding: 20px; }
+.container { max-width: 700px; width: 100%; margin-left: auto; margin-right: auto; }
+h1, h2, h3 { color: var(--text-color); margin-top: 0; text-transform: uppercase; letter-spacing: 1px; }
+h1.main-title { color: var(--primary-color); }
+p { color: var(--secondary-text-color); }
+.hero-section { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; min-height: calc(100vh - 40px); box-sizing: border-box; }
+.hero-section h1 { font-size: clamp(2.5rem, 10vw, 4rem); font-weight: 800; margin: 0; }
+.hero-section p { font-size: clamp(1rem, 4vw, 1.25rem); max-width: 500px; margin: 1rem 0 2.5rem 0; }
+.hero-section .button-style { padding: 16px 48px; font-size: 1.1rem; font-weight: 700; border-radius: 8px; box-shadow: 0 4px 15px rgba(66, 133, 244, 0.2); }
+.hero-image { max-width: 400px; width: 85%; height: auto; margin-top: 2rem; }
+#creator-section, #quiz-view, #results-view { display: none; }
 .creator-block, .question-block { background-color: var(--card-bg-color); padding: 20px; border-radius: 12px; margin-bottom: 25px; border: 1px solid var(--border-color); box-shadow: 0 4px 12px var(--shadow-color); }
+input[type=file] { display: block; margin-bottom: 15px; }
+input[type=text], textarea { width: 100%; padding: 12px; margin-bottom: 12px; border: 1px solid var(--border-color); border-radius: 8px; background-color: var(--bg-color); color: var(--text-color); box-sizing: border-box; }
+textarea { height: 80px; resize: vertical; }
 button, a.button-style { background-color: var(--primary-color); color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 600; margin-top: 10px; text-decoration: none; display: inline-block; transition: background-color 0.2s ease, transform 0.1s ease; }
 button:hover, a.button-style:hover { background-color: var(--primary-hover-color); transform: translateY(-1px); }
 button:disabled { background-color: var(--accent-color); cursor: not-allowed; transform: none; }
@@ -121,7 +61,6 @@ a.secondary-button:hover { background-color: var(--accent-hover-color); }
 #quiz-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
 #timer { font-size: 1.5em; font-weight: bold; color: var(--primary-color); background-color: var(--card-bg-color); padding: 5px 15px; border-radius: 8px; border: 1px solid var(--border-color); }
 .explanation-box { margin-top: 20px; padding: 15px; background-color: var(--info-bg-color); color: var(--info-text-color); border: 1px solid var(--info-border-color); border-radius: 8px; }
-.explanation-box h3 { margin-top: 0; color: var(--info-text-color); }
 #results-summary table { width: 100%; border-collapse: collapse; margin-top: 20px; }
 #results-summary th, #results-summary td { padding: 12px; border: 1px solid var(--border-color); text-align: left; }
 #results-summary th { background-color: var(--card-bg-color); }
@@ -143,4 +82,4 @@ a.secondary-button:hover { background-color: var(--accent-hover-color); }
 .nav-panel ul li a:hover { background-color: var(--bg-color); }
 .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); z-index: 1000; opacity: 0; visibility: hidden; transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out; }
 .overlay.open { opacity: 1; visibility: visible; }
-body.nav-open { overflow: hidden; }
+body.no-scroll { overflow: hidden; }
