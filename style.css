@@ -1,4 +1,4 @@
-/* Design-Inspired Stylesheet with Centered Button Fix */
+/* Design-Inspired Stylesheet with Centered Titles */
 :root {
     --bg-color: #f8f9fa;
     --card-bg-color: #ffffff;
@@ -55,25 +55,42 @@ main {
     margin-right: auto;
 }
 
-/* --- HERO SECTION STYLES (WITH BUTTON CENTERING) --- */
+h1, h2, h3 {
+    color: var(--primary-color);
+    margin-top: 0;
+}
+
+/* THIS IS THE NEW RULE TO CENTER THE MAIN TITLES */
+.container > h1, 
+.container > h2 {
+    text-align: center;
+}
+/* Also center the paragraph right after a centered title */
+.container > h1 + p {
+    text-align: center;
+}
+
+
+p {
+    color: var(--secondary-text-color);
+}
+
+/* --- HERO SECTION STYLES --- */
 .hero-section {
     display: flex;
     flex-direction: column;
-    align-items: center;  /* This centers items horizontally */
-    justify-content: center; /* This centers items vertically */
+    align-items: center;
+    justify-content: center;
     text-align: center;
     min-height: calc(100vh - 40px);
     box-sizing: border-box;
 }
-
-/* This new container will group the text and button */
 .hero-content {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
 }
-
 .hero-section h1 {
     font-size: clamp(2.5rem, 8vw, 4.5rem);
     font-weight: 800;
@@ -81,34 +98,32 @@ main {
     margin-bottom: 0.5rem;
     letter-spacing: -1px;
 }
-
 .hero-section p {
     font-size: clamp(1rem, 4vw, 1.25rem);
     max-width: 500px;
-    margin-bottom: 2rem; /* Slightly reduced margin */
+    margin-bottom: 2rem;
     color: var(--secondary-text-color);
 }
-
 .hero-section .button-style {
     padding: 16px 48px;
     font-size: 1.1rem;
     font-weight: 700;
     border-radius: 50px;
     box-shadow: 0 4px 15px rgba(0, 123, 255, 0.2);
-    margin-bottom: 2rem; /* Add space below the button */
+    margin-bottom: 2rem;
 }
-
 .hero-image {
     max-width: 450px;
     width: 90%;
-    margin-top: 1rem; /* Reduced space above the image */
+    margin-top: 1rem;
 }
 
 /* --- All other styles remain the same --- */
-h1, h2, h3 { color: var(--primary-color); margin-top: 0; }
 .creator-block, .question-block { background-color: var(--card-bg-color); padding: 20px; border-radius: 12px; margin-bottom: 25px; border: 1px solid var(--border-color); box-shadow: 0 4px 12px var(--shadow-color); }
 button, a.button-style { background-color: var(--primary-color); color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 600; margin-top: 10px; text-decoration: none; display: inline-block; transition: background-color 0.2s ease, transform 0.1s ease; }
 button:hover, a.button-style:hover { background-color: var(--primary-hover-color); transform: translateY(-1px); }
+input[type=text], textarea { width: 100%; padding: 12px; margin-bottom: 12px; border: 1px solid var(--border-color); border-radius: 8px; background-color: var(--bg-color); color: var(--text-color); box-sizing: border-box; }
+textarea { height: 80px; resize: vertical; }
 button:disabled { background-color: var(--accent-color); cursor: not-allowed; transform: none; }
 a.secondary-button { background-color: var(--accent-color); }
 a.secondary-button:hover { background-color: var(--accent-hover-color); }
@@ -135,7 +150,7 @@ a.secondary-button:hover { background-color: var(--accent-hover-color); }
 .menu-toggle.is-active span:nth-child(1) { transform: translateY(11px) rotate(45deg); }
 .menu-toggle.is-active span:nth-child(2) { opacity: 0; }
 .menu-toggle.is-active span:nth-child(3) { transform: translateY(-11px) rotate(-45deg); }
-.nav-panel { position: fixed; top: 0; right: 0; width: var(--nav-width); height: 100%; background-color: var(--card-bg-color); box-shadow: -5px 0 15px rgba(0,0,0,0.2); z-index: 1001; padding: 80px 20px 20px; transform: translateX(100%); transition: transform 0.3s ease-in-out; }
+.nav-panel { position: fixed; top: 0; right: 0; width: var(--nav-width); height: 100%; background-color: var(--card-bg-color); box-shadow: -5px 0 15px rgba(0,0,0,0.2); z-index: 1001; transform: translateX(100%); transition: transform 0.3s ease-in-out; }
 .nav-panel.open { transform: translateX(0); }
 .nav-panel ul { list-style: none; padding: 0; }
 .nav-panel ul li a { display: block; padding: 15px 10px; color: var(--text-color); text-decoration: none; font-size: 1.1em; font-weight: 500; border-radius: 8px; transition: background-color 0.2s; }
