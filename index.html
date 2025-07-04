@@ -9,12 +9,13 @@
 <body>
     <div class="container">
         <h1>Quiz Creator</h1>
-        <p>Fill out the form below, or upload a formatted .txt file. A short, shareable link will be generated.</p>
+        <!-- Updated descriptive text -->
+        <p>Fill out the form below, or upload a formatted file. This tool now supports both the 7-line .txt format and the Anki-style .csv format.</p>
 
         <div class="creator-block">
             <h3>Upload a Quiz File</h3>
-            <p>Use the 7-line format per question (.txt file).</p>
-            <input type="file" id="quiz-file-input" accept=".txt">
+            <!-- Updated input to accept both .txt and .csv -->
+            <input type="file" id="quiz-file-input" accept=".txt,.csv">
             <button id="create-from-file-btn">Create Link from File</button>
         </div>
         
@@ -29,12 +30,12 @@
             <h3>Your quiz is ready!</h3>
             <p>You can copy the link below to share it, or start the quiz yourself.</p>
             <input type="text" id="share-link" readonly>
-            <!-- NEW: Start Quiz Button -->
             <a href="#" id="start-quiz-btn" class="button-style">Start Quiz Now</a>
         </div>
     </div>
 
     <script>
+        // All other functions remain the same. Only parseQuizText is new.
         const questionsContainer = document.getElementById('questions-container');
         const addQuestionBtn = document.getElementById('add-question-btn');
         const generateManualBtn = document.getElementById('generate-manual-btn');
@@ -42,7 +43,7 @@
         const createFileBtn = document.getElementById('create-from-file-btn');
         const linkContainer = document.getElementById('share-link-container');
         const shareLinkInput = document.getElementById('share-link');
-        const startQuizBtn = document.getElementById('start-quiz-btn'); // New button
+        const startQuizBtn = document.getElementById('start-quiz-btn');
         let questionCount = 0;
 
         function addQuestion() {
@@ -66,18 +67,58 @@
             const reader = new FileReader();
             reader.onload = function(event) {
                 const quizData = parseQuizText(event.target.result);
-                if (quizData && quizData.length > 0) { generateShareLink(quizData); } else { alert('Could not parse the file. Check the 7-line format.'); }
+                if (quizData && quizData.length > 0) { generateShareLink(quizData); } else { alert('Could not parse the file. Please check the file format.'); }
             };
             reader.readAsText(file);
         }
 
+        // --- THIS IS THE NEW, SMARTER PARSING FUNCTION ---
         function parseQuizText(text) {
-            const quizData = []; const questionBlocks = text.trim().split(/\n\s*\n/);
-            for (const block of questionBlocks) {
-                const lines = block.split('\n'); if (lines.length < 6) continue;
-                const explanationLine = lines[6] || 'EXPLANATION:'; const explanation = explanationLine.startsWith('EXPLANATION:') ? explanationLine.substring(12).trim() : '';
-                const questionData = { question: lines[0].trim(), answers: { a: lines[1].trim(), b: lines[2].trim(), c: lines[3].trim(), d: lines[4].trim() }, correctAnswer: lines[5].substring(8).trim().toLowerCase(), explanation: explanation };
-                quizData.push(questionData);
+            const quizData = [];
+            const trimmedText = text.trim();
+
+            // Heuristic: Check if the file starts like a CSV from the Anki prompt.
+            if (trimmedText.startsWith('"Question"')) {
+                // --- CSV PARSING LOGIC ---
+                const lines = trimmedText.split('\n');
+                const csvRegex = /"([^"]*)"/g; // Safely extracts content from within quotes.
+
+                // Start from the second line to skip the header.
+                for (let i = 1; i < lines.length; i++) {
+                    const line = lines[i];
+                    if (!line) continue;
+
+                    const fields = Array.from(line.matchAll(csvRegex), m => m[1]);
+                    
+                    // A valid line has at least 7 fields (Question to Explanation).
+                    if (fields.length < 7) {
+                        console.warn("Skipping malformed CSV line:", line);
+                        continue;
+                    }
+
+                    const questionData = {
+                        question: fields[0],
+                        answers: { a: fields[1], b: fields[2], c: fields[3], d: fields[4] },
+                        correctAnswer: fields[5].trim().toLowerCase(), // Convert 'A' -> 'a'
+                        explanation: fields[6]
+                    };
+                    quizData.push(questionData);
+                }
+            } else {
+                // --- TXT PARSING LOGIC (The old way) ---
+                const questionBlocks = trimmedText.split(/\n\s*\n/);
+                for (const block of questionBlocks) {
+                    const lines = block.split('\n'); if (lines.length < 6) continue;
+                    const explanationLine = lines[6] || 'EXPLANATION:';
+                    const explanation = explanationLine.startsWith('EXPLANATION:') ? explanationLine.substring(12).trim() : '';
+                    const questionData = {
+                        question: lines[0].trim(),
+                        answers: { a: lines[1].trim(), b: lines[2].trim(), c: lines[3].trim(), d: lines[4].trim() },
+                        correctAnswer: lines[5].substring(8).trim().toLowerCase(),
+                        explanation: explanation
+                    };
+                    quizData.push(questionData);
+                }
             }
             return quizData;
         }
@@ -91,11 +132,9 @@
                 const baseUrl = window.location.href.replace('index.html', '').replace(/\/$/, '');
                 const quizUrl = `${baseUrl}/quiz.html?key=${quizKey}`;
                 shareLinkInput.value = quizUrl;
-                // NEW: Set the 'href' for the redirect button
                 startQuizBtn.href = quizUrl;
                 linkContainer.style.display = 'block';
                 shareLinkInput.select();
-
             } catch (error) {
                 alert("An error occurred while creating the link. Your browser may be in private mode or storage might be full.");
                 console.error("Link generation failed:", error);
