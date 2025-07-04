@@ -132,4 +132,47 @@
     });
     </script>
 </body>
+    <!-- The ENTIRE quiz.html file should now look like this -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- ... head content is the same ... -->
+</head>
+<body>
+    <!-- START: NEW MENU HTML -->
+    <div class="menu-toggle" id="menu-toggle">
+        <span></span>
+        <span></span>
+        <span></span>
+    </div>
+    <nav class="nav-panel" id="nav-panel">
+        <ul>
+            <li><a href="how-to.html">How to Create a File?</a></li>
+            <li><a href="https://360pwatcher.github.io/Anilist/" target="_blank">Contact Us</a></li>
+        </ul>
+    </nav>
+    <!-- END: NEW MENU HTML -->
+
+    <div class="container">
+        <!-- ... the rest of your quiz player page content ... -->
+    </div>
+    
+    <!-- START: NEW MENU JAVASCRIPT -->
+    <script>
+        // --- Menu Toggle Logic ---
+        const menuToggle = document.getElementById('menu-toggle');
+        const navPanel = document.getElementById('nav-panel');
+
+        menuToggle.addEventListener('click', () => {
+            navPanel.classList.toggle('open');
+        });
+    </script>
+    <!-- END: NEW MENU JAVASCRIPT -->
+    
+    <script>
+        // --- Your existing quiz player JavaScript ---
+        // ... (the entire <script> block with quiz logic) ...
+    </script>
+</body>
+</html>
 </html>
