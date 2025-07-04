@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Create a Quiz File</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Back button to return to the creator page -->
+        <a href="index.html" class="button-style secondary-button back-button">← Back to Creator</a>
+
+        <h1>How to Create a Quiz File</h1>
+        <p>You can automatically generate a quiz file compatible with this website using an AI model like ChatGPT, Claude, or Gemini. This guide will show you how.</p>
+        
+        <div class="creator-block">
+            <h2>Step 1: The AI Prompt</h2>
+            <p>The key is to give the AI a very specific and strict set of instructions. Copy the entire prompt below to ensure the output is correctly formatted.</p>
+            <div class="prompt-box">
+                <pre id="prompt-text">You are a highly precise file conversion utility. Your only function is to convert the provided text from a question paper into a specific 7-line format suitable for a quiz website.
+
+Your entire output MUST be ONLY the formatted text content. Do not write any other words, greetings, or summaries.
+
+You must identify every question in the input text and its corresponding answer from the "Answer Key" section.
+
+**CRITICAL RULE 1 (LaTeX Formatting):** For any mathematical or scientific notation (fractions, powers, roots, integrals, chemical formulas, vectors, etc.), you MUST enclose it in LaTeX delimiters. Use `\( ... \)` for inline math.
+
+**CRITICAL RULE 2 (Skipping Invalid Questions):** If you encounter a question in the source document where the "Answer Key" does NOT provide a clear, single letter (A, B, C, or D), you MUST OMIT that entire question from your output.
+
+## REQUIRED OUTPUT FORMAT
+Every question you convert must strictly follow this 7-line structure, and each block must be separated by one blank line.
+
+1.  [The full question text, with math formatted in LaTeX]
+2.  [The text for option A, with math formatted in LaTeX]
+3.  [The text for option B, with math formatted in LaTeX]
+4.  [The text for option C, with math formatted in LaTeX]
+5.  [The text for option D, with math formatted in LaTeX]
+6.  `ANSWER: ` [The single, correct lowercase letter]
+7.  `EXPLANATION: ` [An explanation, with math formatted in LaTeX, or blank]
+
+---
+## YOUR TASK
+
+Now, apply these strict rules to the following text. Convert ALL questions that have a valid A, B, C, or D answer, and format all math using LaTeX. Produce nothing else but the final, formatted text.
+
+[PASTE THE ENTIRE TEXT FROM YOUR QUIZ DOCUMENT HERE]</pre>
+                <button id="copy-prompt-btn">Copy Prompt</button>
+            </div>
+        </div>
+
+        <div class="creator-block">
+            <h2>Step 2: Generate and Save</h2>
+            <ol>
+                <li><strong>Provide Source Material:</strong> After pasting the prompt into your AI chatbot, paste the text from your document (or upload an image of it) where it says `[PASTE THE ENTIRE TEXT FROM YOUR QUIZ DOCUMENT HERE]`.</li>
+                <li><strong>Copy the AI's Output:</strong> The AI will generate the formatted text. Copy the entire response.</li>
+                <li><strong>Create the File:</strong> Open a plain text editor (like Notepad on Windows or the Notes app on your phone). Paste the text.</li>
+                <li><strong>Save the File:</strong> Save the file with a name ending in **`.txt`**. For example, `My_Math_Quiz.txt`.</li>
+            </ol>
+        </div>
+
+        <div class="creator-block">
+            <h2>Step 3: Upload to the Website</h2>
+            <p>You're all set! Go back to the main page and use the "Upload a Quiz File" button to upload the `.txt` file you just created.</p>
+        </div>
+    </div>
+
+    <script>
+        // JavaScript to make the copy button work
+        const copyBtn = document.getElementById('copy-prompt-btn');
+        const promptText = document.getElementById('prompt-text');
+        copyBtn.addEventListener('click', () => {
+            navigator.clipboard.writeText(promptText.innerText).then(() => {
+                copyBtn.textContent = 'Copied!';
+                setTimeout(() => {
+                    copyBtn.textContent = 'Copy Prompt';
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy text: ', err);
+            });
+        });
+    </script>
+</body>
+</html>
