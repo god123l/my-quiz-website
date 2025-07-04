@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quiz Creator</title>
+    <link rel="manifest" href="./manifest.json">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -104,6 +105,17 @@
         function parseQuizText(text) { const quizData = []; const trimmedText = text.trim(); if (trimmedText.startsWith('"Question"')) { const lines = trimmedText.split('\n'); const csvRegex = /"([^"]*)"/g; for (let i = 1; i < lines.length; i++) { const fields = Array.from(lines[i].matchAll(csvRegex), m => m[1]); if (fields.length < 7) continue; quizData.push({ question: fields[0], answers: { a: fields[1], b: fields[2], c: fields[3], d: fields[4] }, correctAnswer: fields[5].trim().toLowerCase(), explanation: fields[6] }); } } else if (trimmedText.includes('\t')) { const lines = trimmedText.split('\n'); for (const line of lines) { if (line.startsWith('#') || !line.trim()) continue; const fields = line.split('\t'); if (fields.length < 7) continue; quizData.push({ question: fields[0], answers: { a: fields[1], b: fields[2], c: fields[3], d: fields[4] }, correctAnswer: fields[5].trim().toLowerCase(), explanation: fields[6] }); } } else { const questionBlocks = trimmedText.split(/\n\s*\n/); for (const block of questionBlocks) { const lines = block.split('\n'); if (lines.length < 6) continue; const explanationLine = lines[6] || 'EXPLANATION:'; const explanation = explanationLine.startsWith('EXPLANATION:') ? explanationLine.substring(12).trim() : ''; quizData.push({ question: lines[0].trim(), answers: { a: lines[1].trim(), b: lines[2].trim(), c: lines[3].trim(), d: lines[4].trim() }, correctAnswer: lines[5].substring(8).trim().toLowerCase(), explanation: explanation }); } } return quizData; }
         function generateShareLink(quizData) { if (!quizData || quizData.length === 0) { alert("No valid questions found."); return; } try { const quizKey = `quiz_${Date.now()}`; const jsonString = JSON.stringify(quizData); localStorage.setItem(quizKey, jsonString); const baseUrl = window.location.href.replace('index.html', '').replace(/\/$/, ''); const quizUrl = `${baseUrl}/quiz.html?key=${quizKey}`; shareLinkInput.value = quizUrl; startQuizBtn.href = quizUrl; linkContainer.style.display = 'block'; shareLinkInput.select(); } catch (error) { alert("An error occurred while creating the link. Your browser may be in private mode or storage might be full."); console.error("Link generation failed:", error); } }
         addQuestionBtn.addEventListener('click', addQuestion); generateManualBtn.addEventListener('click', () => { generateShareLink(getQuizDataFromForm()); }); createFileBtn.addEventListener('click', handleFileUpload); addQuestion();
+    </script>
+    <script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./service-worker.js').then(registration => {
+        console.log('ServiceWorker registration successful with scope: ', registration.scope);
+      }, err => {
+        console.log('ServiceWorker registration failed: ', err);
+      });
+    });
+  }
     </script>
 </body>
 </html>
