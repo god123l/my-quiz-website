@@ -5,14 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Awesome Quiz</title>
     
-    <!-- THIS IS THE NEW LINE TO ADD -->
     <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- The rest of your file (body, script tag at the bottom) remains exactly the same -->
     <div class="container">
         <div id="quiz-view">
             <div id="quiz-header">
@@ -46,8 +44,92 @@
     </div>
     
     <script>
-        // YOUR ENTIRE JAVASCRIPT BLOCK AT THE BOTTOM REMAINS UNCHANGED
-        // ... (all the localStorage and quiz logic) ...
+    document.addEventListener('DOMContentLoaded', function() {
+        const quizView = document.getElementById('quiz-view');
+        const resultsView = document.getElementById('results-view');
+        const errorContainer = document.getElementById('error-container');
+        const qCounter = document.getElementById('question-counter'); const timerDisplay = document.getElementById('timer'); const qText = document.getElementById('question-text'); const answerOpts = document.getElementById('answer-options'); const explanationBox = document.getElementById('explanation-box'); const explanationText = document.getElementById('explanation-text'); const submitBtn = document.getElementById('submit-btn'); const nextBtn = document.getElementById('next-btn');
+        let quizData = [], currentQIndex = 0, score = 0, userAnswers = [], timePerQuestion = [], timerInterval, questionStartTime;
+
+        function startTimer() { questionStartTime = Date.now(); timerInterval = setInterval(() => { timerDisplay.textContent = `${Math.floor((Date.now() - questionStartTime) / 1000)}s`; }, 1000); }
+        function stopTimer() { clearInterval(timerInterval); timePerQuestion.push(Math.round((Date.now() - questionStartTime) / 1000)); }
+
+        // --- THE displayQuestion FUNCTION IS THE ONE WITH THE FIX ---
+        function displayQuestion() {
+            explanationBox.style.display = 'none';
+            submitBtn.style.display = 'inline-block';
+            nextBtn.style.display = 'none';
+            answerOpts.innerHTML = '';
+
+            const currentQ = quizData[currentQIndex];
+            qCounter.textContent = `Question ${currentQIndex + 1} of ${quizData.length}`;
+            qText.textContent = currentQ.question;
+
+            for (const letter in currentQ.answers) {
+                const label = document.createElement('label');
+                const answerText = currentQ.answers[letter];
+                // Use textContent to safely insert the text before MathJax processes it.
+                label.innerHTML = `<input type="radio" name="answer" value="${letter}">`;
+                label.appendChild(document.createTextNode(` ${letter.toUpperCase()}: ${answerText}`));
+                answerOpts.appendChild(label);
+            }
+            
+            // --- THIS IS THE CRITICAL FIX ---
+            // Tell MathJax to look for and render any new math on the page.
+            if (window.MathJax) {
+                MathJax.typeset();
+            }
+
+            startTimer();
+        }
+
+        submitBtn.addEventListener('click', function() {
+            const selectedRadio = answerOpts.querySelector('input[name="answer"]:checked'); if (!selectedRadio) { alert('Please select an answer!'); return; }
+            stopTimer();
+            const userAnswer = selectedRadio.value; const currentQ = quizData[currentQIndex]; userAnswers.push(userAnswer);
+            answerOpts.querySelectorAll('input').forEach(input => input.disabled = true);
+            const correctLabel = answerOpts.querySelector(`input[value="${currentQ.correctAnswer}"]`).parentElement;
+            correctLabel.classList.add('correct');
+            if (userAnswer === currentQ.correctAnswer) { score++; } else { selectedRadio.parentElement.classList.add('incorrect'); }
+            
+            if (currentQ.explanation) {
+                explanationText.textContent = currentQ.explanation;
+                explanationBox.style.display = 'block';
+                // Also render math in the explanation box
+                if (window.MathJax) {
+                    MathJax.typesetPromise([explanationBox]).catch((err) => console.log(err.message));
+                }
+            }
+            submitBtn.style.display = 'none';
+            nextBtn.style.display = 'inline-block';
+            if (currentQIndex === quizData.length - 1) { nextBtn.textContent = 'Show Results'; }
+        });
+
+        nextBtn.addEventListener('click', function() { currentQIndex++; if (currentQIndex < quizData.length) { displayQuestion(); } else { displayResults(); } });
+
+        function displayResults() {
+            // ... (The rest of this function is unchanged)
+            quizView.style.display = 'none'; resultsView.style.display = 'block'; document.getElementById('final-score').textContent = `Final Score: ${score} out of ${quizData.length}`; const totalTime = timePerQuestion.reduce((a, b) => a + b, 0); document.getElementById('total-time').textContent = `Total Time: ${totalTime} seconds`; let summaryHtml = '<table><tr><th>#</th><th>Question</th><th>Your Answer</th><th>Time</th></tr>'; quizData.forEach((q, i) => { const isCorrect = userAnswers[i] === q.correctAnswer; const statusClass = isCorrect ? 'result-correct' : 'result-incorrect'; const statusSymbol = isCorrect ? '✔' : '✖'; const userAnswerText = `${userAnswers[i].toUpperCase()}: ${q.answers[userAnswers[i]]}`; const correctAnswerText = `Correct: ${q.correctAnswer.toUpperCase()}: ${q.answers[q.correctAnswer]}`; summaryHtml += `<tr><td class="${statusClass}">${statusSymbol}</td><td>${q.question}</td><td>${userAnswerText} <br><small class="${statusClass}">${isCorrect ? '' : correctAnswerText}</small></td><td>${timePerQuestion[i]}s</td></tr>`; }); summaryHtml += '</table>'; document.getElementById('results-summary').innerHTML = summaryHtml;
+            // Render any math in the final results table
+            if (window.MathJax) { MathJax.typesetPromise([resultsView]).catch((err) => console.log(err.message)); }
+        }
+
+        try {
+            const urlParams = new URLSearchParams(window.location.search);
+            const quizKey = urlParams.get('key');
+            if (!quizKey) throw new Error("No quiz key found in the link.");
+            const jsonString = localStorage.getItem(quizKey);
+            if (!jsonString) throw new Error("Quiz data not found in browser storage. It may have been cleared or was never created.");
+            quizData = JSON.parse(jsonString);
+            if (!Array.isArray(quizData) || quizData.length === 0) throw new Error("Parsed data is not a valid quiz.");
+            displayQuestion();
+        } catch (e) {
+            console.error("Quiz initialization failed:", e.message);
+            quizView.style.display = 'none';
+            resultsView.style.display = 'none';
+            errorContainer.style.display = 'block';
+        }
+    });
     </script>
 </body>
 </html>
