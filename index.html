@@ -25,11 +25,7 @@
     <main>
         <!-- Section 1: Hero Landing Page -->
         <div id="hero-section" class="hero-section">
-            <div class="hero-content">
-                <h1>CREATE A QUIZ</h1>
-                <p>Build your own interactive quizzes with ease.</p>
-                <a href="#" id="show-creator-btn" class="button-style">Create Quiz</a>
-            </div>
+            <div class="hero-content"><h1>CREATE A QUIZ</h1><p>Build your own interactive quizzes with ease.</p><a href="#" id="show-creator-btn" class="button-style">Create Quiz</a></div>
             <img src="./hero-image.svg" alt="Quiz illustration" class="hero-image">
             <div id="quiz-counter-display" style="margin-top: 2rem; color: var(--secondary-text-color);"><span id="total-quizzes">...</span> quizzes created so far!</div>
         </div>
@@ -37,25 +33,10 @@
         <!-- Section 2: Creator Tools (starts hidden) -->
         <div id="creator-section" style="display: none;">
             <div class="container">
-                <h1>Quiz Creator</h1>
-                <p>Fill out the form below, or upload a formatted file.</p>
-                <div class="creator-block">
-                    <h3>Upload a Quiz File</h3>
-                    <input type="file" id="quiz-file-input" accept=".txt,.csv">
-                    <button id="create-from-file-btn">Create Link from File</button>
-                </div>
-                <div class="creator-block">
-                    <h3>Or, Create Manually:</h3>
-                    <div id="questions-container"></div>
-                    <button id="add-question-btn">Add Another Question</button>
-                    <button id="generate-manual-btn">Create Link from Form</button>
-                </div>
-                <div id="share-link-container" style="display: none;">
-                    <h3>Your quiz is ready!</h3>
-                    <p>Copy the link to share, or start the quiz directly on this device (works offline).</p>
-                    <input type="text" id="share-link" readonly>
-                    <a href="#" id="start-quiz-btn" class="button-style">Start Quiz Now</a>
-                </div>
+                <h1>Quiz Creator</h1><p>Fill out the form below, or upload a formatted file.</p>
+                <div class="creator-block"><h3>Upload a Quiz File</h3><input type="file" id="quiz-file-input" accept=".txt,.csv"><button id="create-from-file-btn">Create Link from File</button></div>
+                <div class="creator-block"><h3>Or, Create Manually:</h3><div id="questions-container"></div><button id="add-question-btn">Add Another Question</button><button id="generate-manual-btn">Create Link from Form</button></div>
+                <div id="share-link-container" style="display: none;"><h3>Your quiz is ready!</h3><p>Copy the link to share, or start the quiz directly on this device (works offline).</p><input type="text" id="share-link" readonly><a href="#" id="start-quiz-btn" class="button-style">Start Quiz Now</a></div>
             </div>
         </div>
 
@@ -64,7 +45,6 @@
         <div id="results-view" style="display: none;"></div>
     </main>
 
-    <!-- THE SINGLE, COMPLETE, AND CORRECTED SCRIPT BLOCK -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             // --- SUPABASE SETUP ---
@@ -91,100 +71,86 @@
             const navPanel = document.getElementById('nav-panel');
             const overlay = document.getElementById('overlay');
             const body = document.body;
-            const quizCounterDisplay = document.getElementById('total-quizzes');
 
             // --- GLOBAL STATE ---
             let quizDataForOfflinePlay = [];
             
             // --- MENU LOGIC ---
-            function closeMenu() { menuToggle.classList.remove('is-active'); navPanel.classList.remove('open'); overlay.classList.remove('open'); body.classList.remove('no-scroll'); }
-            
-            // --- VIEW SWITCHING LOGIC ---
-            function showCreatorView() { heroSection.style.display = 'none'; creatorSection.style.display = 'block'; }
+            const closeMenu = () => { menuToggle.classList.remove('is-active'); navPanel.classList.remove('open'); overlay.classList.remove('open'); body.classList.remove('no-scroll'); };
+            menuToggle.addEventListener('click', () => { menuToggle.classList.toggle('is-active'); navPanel.classList.toggle('open'); overlay.classList.toggle('open'); body.classList.toggle('no-scroll'); });
+            overlay.addEventListener('click', closeMenu);
 
-            // --- COUNTER LOGIC ---
-            async function updateQuizCount() {
-                try {
-                    const { count, error } = await supabase.from('quizzes').select('*', { count: 'exact', head: true });
-                    if (error) { throw error; }
-                    quizCounterDisplay.textContent = count;
-                } catch (error) { console.error("Error fetching quiz count:", error.message); quizCounterDisplay.textContent = 'N/A'; }
-            }
-            async function incrementQuizCount() { await updateQuizCount(); }
-
-            // --- QUIZ CREATOR FUNCTIONS ---
+            // --- VIEW SWITCHING & CREATOR LOGIC ---
+            showCreatorBtn.addEventListener('click', (e) => { e.preventDefault(); heroSection.style.display = 'none'; creatorSection.style.display = 'block'; });
+            const countApiUrl = 'https://api.countapi.xyz'; const namespace = 'god123l-quiz-creator'; const key = 'creations';
+            const updateQuizCount = () => { fetch(`${countApiUrl}/get/${namespace}/${key}`).then(res => res.json()).then(data => { document.getElementById('total-quizzes').textContent = data.value || 0; }).catch(() => { document.getElementById('total-quizzes').textContent = 'N/A'; }); };
+            const incrementQuizCount = () => { fetch(`${countApiUrl}/hit/${namespace}/${key}`).then(res => res.json()).then(data => { document.getElementById('total-quizzes').textContent = data.value; }); };
             let questionCount = 0;
-            function addQuestion() {
-                questionCount++;
-                const block = document.createElement('div');
-                block.className = 'manual-question-block';
-                block.innerHTML = `<h4>Question ${questionCount}</h4><input type="text" placeholder="Enter your question" class="question-title"><input type="text" placeholder="Answer A" class="answer-a"><input type="text" placeholder="Answer B" class="answer-b"><input type="text" placeholder="Answer C" class="answer-c"><input type="text" placeholder="Answer D" class="answer-d"><input type="text" placeholder="Correct Answer Letter (a, b, c, or d)" class="correct-answer" maxlength="1"><textarea placeholder="Optional: Enter explanation here" class="explanation"></textarea>`;
-                questionsContainer.appendChild(block);
-            }
-            function getQuizDataFromForm() {
-                const data = []; document.querySelectorAll('.manual-question-block').forEach(qBlock => { const questionTitle = qBlock.querySelector('.question-title').value; const answerA = qBlock.querySelector('.answer-a').value; const answerB = qBlock.querySelector('.answer-b').value; const answerC = qBlock.querySelector('.answer-c').value; const answerD = qBlock.querySelector('.answer-d').value; const correctAnswer = qBlock.querySelector('.correct-answer').value.toLowerCase(); const explanation = qBlock.querySelector('.explanation').value.trim(); if (questionTitle && answerA && answerB && answerC && answerD && correctAnswer) { data.push({ question: questionTitle, answers: { a: answerA, b: answerB, c: answerC, d: answerD }, correctAnswer: correctAnswer, explanation: explanation }); } }); return data;
-            }
-            function handleFileUpload() {
-                const file = fileInput.files[0]; if (!file) { alert('Please select a file.'); return; }
-                const reader = new FileReader();
-                reader.onload = function(event) {
-                    const data = parseQuizText(event.target.result);
-                    if (data && data.length > 0) { generateAndSaveQuiz(data); } else { alert('Could not parse file.'); }
-                };
-                reader.readAsText(file);
-            }
-            function parseQuizText(text) {
-                const data = []; const trimmedText = text.trim();
-                if (trimmedText.startsWith('"Question"')) {
-                    const lines = trimmedText.split('\n'); const csvRegex = /"([^"]*)"/g; for (let i = 1; i < lines.length; i++) { const fields = Array.from(lines[i].matchAll(csvRegex), m => m[1]); if (fields.length < 7) continue; data.push({ question: fields[0], answers: { a: fields[1], b: fields[2], c: fields[3], d: fields[4] }, correctAnswer: fields[5].trim().toLowerCase(), explanation: fields[6] }); }
-                } else if (trimmedText.includes('\t')) {
-                    const lines = trimmedText.split('\n'); for (const line of lines) { if (line.startsWith('#') || !line.trim()) continue; const fields = line.split('\t'); if (fields.length < 7) continue; data.push({ question: fields[0], answers: { a: fields[1], b: fields[2], c: fields[3], d: fields[4] }, correctAnswer: fields[5].trim().toLowerCase(), explanation: fields[6] }); }
-                } else {
-                    const questionBlocks = trimmedText.split(/\n\s*\n/); for (const block of questionBlocks) { const lines = block.split('\n'); if (lines.length < 6) continue; const explanationLine = lines[6] || 'EXPLANATION:'; const explanation = explanationLine.startsWith('EXPLANATION:') ? explanationLine.substring(12).trim() : ''; data.push({ question: lines[0].trim(), answers: { a: lines[1].trim(), b: lines[2].trim(), c: lines[3].trim(), d: lines[4].trim() }, correctAnswer: lines[5].substring(8).trim().toLowerCase(), explanation: explanation }); }
-                }
-                return data;
-            }
-            async function generateAndSaveQuiz(data) {
-                quizDataForOfflinePlay = data;
-                if (!data || data.length === 0) { alert("No valid questions found."); return; }
-                const quizId = Date.now().toString(36) + Math.random().toString(36).substring(2, 7);
-                linkContainer.style.display = 'block'; shareLinkInput.value = 'Saving to cloud...';
-                startQuizBtn.style.pointerEvents = 'none';
-                try {
-                    const { error } = await supabase.from('quizzes').insert({ short_id: quizId, data: data });
-                    if (error) { throw error; }
-                    const baseUrl = window.location.href.replace('index.html', '').replace(/\/$/, '');
-                    const shareableUrl = `${baseUrl}/quiz.html?id=${quizId}`;
-                    shareLinkInput.value = shareableUrl;
-                    await incrementQuizCount();
-                } catch (error) {
-                    console.error('Supabase save error:', error.message);
-                    shareLinkInput.value = 'Error: Could not save quiz online.';
-                    alert(`Failed to save quiz online. The 'Start Quiz Now' button will still work for offline play.\n\nError: ${error.message}`);
-                } finally {
-                    startQuizBtn.style.pointerEvents = 'auto';
-                }
-            }
+            const addQuestion = () => { questionCount++; const block = document.createElement('div'); block.className = 'manual-question-block'; block.innerHTML = `<h4>Question ${questionCount}</h4><input type="text" placeholder="Enter your question" class="question-title"><input type="text" placeholder="Answer A" class="answer-a"><input type="text" placeholder="Answer B" class="answer-b"><input type="text" placeholder="Answer C" class="answer-c"><input type="text" placeholder="Answer D" class="answer-d"><input type="text" placeholder="Correct Answer Letter (a, b, c, or d)" class="correct-answer" maxlength="1"><textarea placeholder="Optional: Enter explanation here" class="explanation"></textarea>`; questionsContainer.appendChild(block); };
+            const getQuizDataFromForm = () => { const data = []; document.querySelectorAll('.manual-question-block').forEach(qBlock => { const questionTitle = qBlock.querySelector('.question-title').value; const answerA = qBlock.querySelector('.answer-a').value; const answerB = qBlock.querySelector('.answer-b').value; const answerC = qBlock.querySelector('.answer-c').value; const answerD = qBlock.querySelector('.answer-d').value; const correctAnswer = qBlock.querySelector('.correct-answer').value.toLowerCase(); const explanation = qBlock.querySelector('.explanation').value.trim(); if (questionTitle && answerA && answerB && answerC && answerD && correctAnswer) { data.push({ question: questionTitle, answers: { a: answerA, b: answerB, c: answerC, d: answerD }, correctAnswer: correctAnswer, explanation: explanation }); } }); return data; };
+            const handleFileUpload = () => { const file = fileInput.files[0]; if (!file) { alert('Please select a file.'); return; } const reader = new FileReader(); reader.onload = function(event) { const data = parseQuizText(event.target.result); if (data && data.length > 0) { generateAndSaveQuiz(data); } else { alert('Could not parse file.'); } }; reader.readAsText(file); };
+            const parseQuizText = (text) => { const data = []; const trimmedText = text.trim(); if (trimmedText.startsWith('"Question"')) { const lines = trimmedText.split('\n'); const csvRegex = /"([^"]*)"/g; for (let i = 1; i < lines.length; i++) { const fields = Array.from(lines[i].matchAll(csvRegex), m => m[1]); if (fields.length < 7) continue; data.push({ question: fields[0], answers: { a: fields[1], b: fields[2], c: fields[3], d: fields[4] }, correctAnswer: fields[5].trim().toLowerCase(), explanation: fields[6] }); } } else if (trimmedText.includes('\t')) { const lines = trimmedText.split('\n'); for (const line of lines) { if (line.startsWith('#') || !line.trim()) continue; const fields = line.split('\t'); if (fields.length < 7) continue; data.push({ question: fields[0], answers: { a: fields[1], b: fields[2], c: fields[3], d: fields[4] }, correctAnswer: fields[5].trim().toLowerCase(), explanation: fields[6] }); } } else { const questionBlocks = trimmedText.split(/\n\s*\n/); for (const block of questionBlocks) { const lines = block.split('\n'); if (lines.length < 6) continue; const explanationLine = lines[6] || 'EXPLANATION:'; const explanation = explanationLine.startsWith('EXPLANATION:') ? explanationLine.substring(12).trim() : ''; data.push({ question: lines[0].trim(), answers: { a: lines[1].trim(), b: lines[2].trim(), c: lines[3].trim(), d: lines[4].trim() }, correctAnswer: lines[5].substring(8).trim().toLowerCase(), explanation: explanation }); } } return data; };
+            const generateAndSaveQuiz = async (data) => { quizDataForOfflinePlay = data; if (!data || data.length === 0) { alert("No valid questions found."); return; } await incrementQuizCount(); const quizId = Date.now().toString(36) + Math.random().toString(36).substring(2, 7); linkContainer.style.display = 'block'; shareLinkInput.value = 'Saving to cloud...'; startQuizBtn.style.pointerEvents = 'none'; try { const { error } = await supabase.from('quizzes').insert({ short_id: quizId, data: data }); if (error) { throw error; } const baseUrl = window.location.href.replace('index.html', '').replace(/\/$/, ''); const shareableUrl = `${baseUrl}/quiz.html?id=${quizId}`; shareLinkInput.value = shareableUrl; } catch (error) { console.error('Supabase save error:', error.message); shareLinkInput.value = 'Error: Could not save quiz online.'; alert(`Failed to save quiz online.\n\nError: ${error.message}`); } finally { startQuizBtn.style.pointerEvents = 'auto'; } };
 
-            // --- QUIZ PLAYER LOGIC (for offline play on index.html) ---
+            addQuestionBtn.addEventListener('click', addQuestion);
+            generateManualBtn.addEventListener('click', () => { const data = getQuizDataFromForm(); if(data.length > 0) generateAndSaveQuiz(data); else alert("Please fill out at least one question completely."); });
+            createFileBtn.addEventListener('click', handleFileUpload);
+            startQuizBtn.addEventListener('click', (e) => { e.preventDefault(); if (quizDataForOfflinePlay.length > 0) { creatorSection.style.display = 'none'; heroSection.style.display = 'none'; startQuizPlayer(quizDataForOfflinePlay); } else { alert("Please generate a quiz first before starting."); } });
+            
+            // --- THE NEW, ROBUST QUIZ PLAYER LOGIC ---
             let currentQIndex, score, userAnswers, timePerQuestion, timerInterval, questionStartTime;
-            function startOfflineQuiz(data) {
-                if (data && data.length > 0) {
-                    creatorSection.style.display = 'none';
-                    heroSection.style.display = 'none';
-                    startQuizPlayer(data);
-                } else { alert("Please generate a quiz first before starting."); }
-            }
+            
             function startQuizPlayer(data) {
                 quizDataForOfflinePlay = data; currentQIndex = 0; score = 0; userAnswers = []; timePerQuestion = [];
-                quizView.style.display = 'block'; resultsView.style.display = 'none';
+                quizView.style.display = 'block';
+                resultsView.style.display = 'none';
                 quizView.innerHTML = `<div class="container"><div id="quiz-header"><h2 id="question-counter"></h2><div id="timer">0s</div></div><div class="question-block"><div class="question" id="question-text"></div><div class="answers" id="answer-options"></div></div><div id="explanation-box" style="display: none;"><h3>Explanation</h3><p id="explanation-text"></p></div><button id="submit-btn">Submit Answer</button><button id="next-btn" style="display: none;">Next Question</button></div>`;
+                
+                // Attach listeners AFTER creating the HTML
+                attachPlayerListeners();
                 displayQuestion();
             }
+
+            function attachPlayerListeners() {
+                const submitBtn = document.getElementById('submit-btn');
+                const nextBtn = document.getElementById('next-btn');
+                submitBtn.addEventListener('click', handleSubmit);
+                nextBtn.addEventListener('click', handleNext);
+            }
+
+            function handleSubmit() {
+                const answerOpts = document.getElementById('answer-options');
+                const selectedRadio = answerOpts.querySelector('input[name="answer"]:checked');
+                if (!selectedRadio) { alert('Please select an answer!'); return; }
+                stopTimer();
+                const userAnswer = selectedRadio.value; const currentQ = quizDataForOfflinePlay[currentQIndex]; userAnswers.push(userAnswer);
+                answerOpts.querySelectorAll('input').forEach(input => input.disabled = true);
+                const correctLabel = answerOpts.querySelector(`input[value="${currentQ.correctAnswer}"]`).parentElement; correctLabel.classList.add('correct');
+                if (userAnswer === currentQ.correctAnswer) { score++; } else { selectedRadio.parentElement.classList.add('incorrect'); }
+                const explanationBox = document.getElementById('explanation-box'); const explanationText = document.getElementById('explanation-text');
+                if (currentQ.explanation) { explanationText.textContent = currentQ.explanation; explanationBox.style.display = 'block'; if (window.MathJax) { MathJax.typesetPromise([explanationBox]).catch((err) => console.log(err.message)); } }
+                document.getElementById('submit-btn').style.display = 'none';
+                const nextBtn = document.getElementById('next-btn');
+                nextBtn.style.display = 'inline-block';
+                if (currentQIndex === quizDataForOfflinePlay.length - 1) { nextBtn.textContent = 'Show Results'; }
+            }
+
+            function handleNext() {
+                currentQIndex++;
+                if (currentQIndex < quizDataForOfflinePlay.length) {
+                    displayQuestion();
+                } else {
+                    displayResults();
+                }
+            }
+
             function startTimer() { const timerDisplay = document.getElementById('timer'); questionStartTime = Date.now(); timerInterval = setInterval(() => { timerDisplay.textContent = `${Math.floor((Date.now() - questionStartTime) / 1000)}s`; }, 1000); }
             function stopTimer() { clearInterval(timerInterval); timePerQuestion.push(Math.round((Date.now() - questionStartTime) / 1000)); }
+
             function displayQuestion() {
                 const qCounter = document.getElementById('question-counter'); const qText = document.getElementById('question-text'); const answerOpts = document.getElementById('answer-options');
+                document.getElementById('submit-btn').style.display = 'inline-block';
+                document.getElementById('next-btn').style.display = 'none';
                 answerOpts.innerHTML = '';
                 const currentQ = quizDataForOfflinePlay[currentQIndex];
                 qCounter.textContent = `Question ${currentQIndex + 1} of ${quizDataForOfflinePlay.length}`;
@@ -193,6 +159,7 @@
                 if (window.MathJax) { MathJax.typeset(); }
                 startTimer();
             }
+
             function displayResults() {
                 quizView.style.display = 'none'; resultsView.style.display = 'block';
                 resultsView.innerHTML = `<div class="container"><h2>Quiz Complete!</h2><p id="final-score"></p><p id="total-time"></p><h3>Performance Summary</h3><div id="results-summary"></div><a href="./index.html" class="button-style secondary-button">Create a New Quiz</a></div>`;
@@ -206,34 +173,6 @@
                 document.getElementById('results-summary').innerHTML = summaryHtml;
                 if (window.MathJax) { MathJax.typesetPromise([resultsView]).catch((err) => console.log(err.message)); }
             }
-            document.body.addEventListener('click', function(e) {
-                if(e.target && e.target.id == 'submit-btn') {
-                    const answerOpts = document.getElementById('answer-options'); const selectedRadio = answerOpts.querySelector('input[name="answer"]:checked');
-                    if (!selectedRadio) { alert('Please select an answer!'); return; }
-                    stopTimer();
-                    const userAnswer = selectedRadio.value; const currentQ = quizDataForOfflinePlay[currentQIndex]; userAnswers.push(userAnswer);
-                    answerOpts.querySelectorAll('input').forEach(input => input.disabled = true);
-                    const correctLabel = answerOpts.querySelector(`input[value="${currentQ.correctAnswer}"]`).parentElement; correctLabel.classList.add('correct');
-                    if (userAnswer === currentQ.correctAnswer) { score++; } else { selectedRadio.parentElement.classList.add('incorrect'); }
-                    const explanationBox = document.getElementById('explanation-box'); const explanationText = document.getElementById('explanation-text');
-                    if (currentQ.explanation) { explanationText.textContent = currentQ.explanation; explanationBox.style.display = 'block'; if (window.MathJax) { MathJax.typesetPromise([explanationBox]).catch((err) => console.log(err.message)); } }
-                    e.target.style.display = 'none'; document.getElementById('next-btn').style.display = 'inline-block';
-                    if (currentQIndex === quizDataForOfflinePlay.length - 1) { document.getElementById('next-btn').textContent = 'Show Results'; }
-                }
-                if(e.target && e.target.id == 'next-btn') {
-                    currentQIndex++;
-                    if (currentQIndex < quizDataForOfflinePlay.length) { displayQuestion(); } else { displayResults(); }
-                }
-            });
-            
-            // --- EVENT LISTENERS (THE MISSING PART) ---
-            menuToggle.addEventListener('click', () => { menuToggle.classList.toggle('is-active'); navPanel.classList.toggle('open'); overlay.classList.toggle('open'); body.classList.toggle('no-scroll'); });
-            overlay.addEventListener('click', closeMenu);
-            showCreatorBtn.addEventListener('click', (e) => { e.preventDefault(); showCreatorView(); });
-            addQuestionBtn.addEventListener('click', addQuestion);
-            generateManualBtn.addEventListener('click', () => { const data = getQuizDataFromForm(); if(data.length > 0) generateAndSaveQuiz(data); else alert("Please fill out at least one question completely."); });
-            createFileBtn.addEventListener('click', handleFileUpload);
-            startQuizBtn.addEventListener('click', (e) => { e.preventDefault(); startOfflineQuiz(quizDataForOfflinePlay); });
 
             // --- INITIALIZATION ---
             updateQuizCount();
@@ -241,11 +180,7 @@
         });
 
         // --- PWA REGISTRATION ---
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./service-worker.js');
-            });
-        }
+        if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('./service-worker.js'); }); }
     </script>
 </body>
 </html>
