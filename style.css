@@ -1,4 +1,4 @@
-/* Design-Inspired Stylesheet with Responsive Hero Fix */
+/* Final, Optimized Stylesheet for SPA */
 :root {
     --bg-color: #f8f9fa;
     --card-bg-color: #ffffff;
@@ -8,7 +8,7 @@
     --primary-hover-color: #0b5ed7;
     --border-color: #dee2e6;
     --shadow-color: rgba(0, 0, 0, 0.05);
-    /* Other colors */
+    /* Other colors for consistency */
     --accent-color: #6c757d;
     --accent-hover-color: #5c636a;
     --success-bg-color: #d1e7dd;
@@ -23,13 +23,14 @@
     --nav-width: 280px;
 }
 
+/* Dark mode inspired by your "Batman" image */
 @media (prefers-color-scheme: dark) {
     :root {
         --bg-color: #121212;
         --card-bg-color: #1e1e1e;
         --text-color: #e8eaed;
         --secondary-text-color: #9aa0a6;
-        --primary-color: #4285f4;
+        --primary-color: #4285f4; /* A brighter blue for dark backgrounds */
         --primary-hover-color: #3b78e7;
         --border-color: #3c4043;
         --shadow-color: rgba(0, 0, 0, 0.3);
@@ -55,45 +56,56 @@ main {
     margin-right: auto;
 }
 
-/* --- HERO SECTION STYLES (WITH THE RESPONSIVE FIX) --- */
+/* --- HERO SECTION STYLES (CORRECTED AND OPTIMIZED) --- */
 .hero-section {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
+    align-items: center;    /* Center horizontally */
+    justify-content: center; /* Center vertically */
     text-align: center;
-    /* Changed min-height to use viewport height, but with padding */
-    min-height: calc(100vh - 40px);
-    box-sizing: border-box; /* Ensures padding is included in height calculation */
-}
-.hero-section h1 {
-    font-size: clamp(2.5rem, 8vw, 4.5rem);
-    font-weight: 800;
-    color: var(--text-color);
-    margin-bottom: 0.5rem;
-    letter-spacing: -1px;
-}
-.hero-section p {
-    font-size: clamp(1rem, 4vw, 1.25rem);
-    max-width: 500px;
-    margin-bottom: 2.5rem;
-    color: var(--secondary-text-color);
-}
-.hero-section .button-style {
-    padding: 16px 48px;
-    font-size: 1.1rem;
-    font-weight: 700;
-    border-radius: 50px;
-    box-shadow: 0 4px 15px rgba(0, 123, 255, 0.2);
-}
-.hero-image {
-    max-width: 450px;
-    width: 90%;
-    /* Reduced top margin for better spacing on mobile */
-    margin-top: 2rem; 
+    /* Make it take up the full screen height minus padding */
+    min-height: calc(100vh - 40px); 
+    box-sizing: border-box;
 }
 
-/* --- All other styles remain the same --- */
+.hero-section h1 {
+    font-size: clamp(2rem, 10vw, 3.5rem); /* Responsive font size */
+    font-weight: 700;
+    color: var(--text-color);
+    margin: 0;
+    letter-spacing: -1px;
+    text-transform: uppercase;
+}
+
+.hero-section p {
+    font-size: clamp(1rem, 4vw, 1.2rem);
+    max-width: 500px;
+    margin: 1rem 0 2rem 0; /* Consistent spacing */
+    color: var(--secondary-text-color);
+}
+
+.hero-section .button-style {
+    padding: 14px 40px;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 8px; /* Changed from pill shape to match image */
+    box-shadow: 0 4px 15px rgba(0, 123, 255, 0.2);
+}
+
+.hero-image {
+    max-width: 350px; /* Control max size on larger screens */
+    width: 80%;       /* Make it responsive on smaller screens */
+    height: auto;     /* Maintain aspect ratio */
+    margin-top: 3rem; /* Add space above the image */
+}
+
+/* Hide sections that are not active */
+#creator-section, #quiz-view, #results-view {
+    display: none;
+}
+
+
+/* --- ALL OTHER STYLES REMAIN THE SAME --- */
 h1, h2, h3 { color: var(--primary-color); margin-top: 0; }
 .creator-block, .question-block { background-color: var(--card-bg-color); padding: 20px; border-radius: 12px; margin-bottom: 25px; border: 1px solid var(--border-color); box-shadow: 0 4px 12px var(--shadow-color); }
 button, a.button-style { background-color: var(--primary-color); color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 600; margin-top: 10px; text-decoration: none; display: inline-block; transition: background-color 0.2s ease, transform 0.1s ease; }
@@ -124,7 +136,7 @@ a.secondary-button:hover { background-color: var(--accent-hover-color); }
 .menu-toggle.is-active span:nth-child(1) { transform: translateY(11px) rotate(45deg); }
 .menu-toggle.is-active span:nth-child(2) { opacity: 0; }
 .menu-toggle.is-active span:nth-child(3) { transform: translateY(-11px) rotate(-45deg); }
-.nav-panel { position: fixed; top: 0; right: 0; width: var(--nav-width); height: 100%; background-color: var(--card-bg-color); box-shadow: -5px 0 15px rgba(0,0,0,0.2); z-index: 1001; padding: 80px 20px 20px; transform: translateX(100%); transition: transform 0.3s ease-in-out; }
+.nav-panel { position: fixed; top: 0; right: 0; width: var(--nav-width); height: 100%; background-color: var(--card-bg-color); box-shadow: -5px 0 15px rgba(0,0,0,0.2); z-index: 1001; transform: translateX(100%); transition: transform 0.3s ease-in-out; }
 .nav-panel.open { transform: translateX(0); }
 .nav-panel ul { list-style: none; padding: 0; }
 .nav-panel ul li a { display: block; padding: 15px 10px; color: var(--text-color); text-decoration: none; font-size: 1.1em; font-weight: 500; border-radius: 8px; transition: background-color 0.2s; }
@@ -132,9 +144,3 @@ a.secondary-button:hover { background-color: var(--accent-hover-color); }
 .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); z-index: 1000; opacity: 0; visibility: hidden; transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out; }
 .overlay.open { opacity: 1; visibility: visible; }
 body.nav-open { overflow: hidden; }
-/* --- ADD THIS AT THE VERY END OF your style.css --- */
-
-/* Hide the quiz player and results views on the index page by default */
-#quiz-view, #results-view {
-    display: none;
-}
