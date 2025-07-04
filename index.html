@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <!-- Menu HTML remains the same -->
     <div class="menu-toggle" id="menu-toggle">
         <span></span>
         <span></span>
@@ -19,70 +20,80 @@
             <li><a href="https://360pwatcher.github.io/Anilist/" target="_blank">Contact Us</a></li>
         </ul>
     </nav>
-    
-    <main>
-        <div class="container">
-            <h1>Quiz Creator</h1>
-            <p>Fill out the form below, or upload a formatted file. This tool now supports Anki-style .csv, tab-separated .txt, and 7-line block .txt formats.</p>
 
-            <div class="creator-block">
-                <h3>Upload a Quiz File</h3>
-                <input type="file" id="quiz-file-input" accept=".txt,.csv">
-                <button id="create-from-file-btn">Create Link from File</button>
-            </div>
-            
-            <div class="creator-block">
-                <h3>Or, Create Manually:</h3>
-                <div id="questions-container"></div>
-                <button id="add-question-btn">Add Another Question</button>
-                <button id="generate-manual-btn">Create Link from Form</button>
-            </div>
-            
-            <div id="share-link-container">
-                <h3>Your quiz is ready!</h3>
-                <p>You can copy the link below to share it, or start the quiz yourself.</p>
-                <input type="text" id="share-link" readonly>
-                <a href="#" id="start-quiz-btn" class="button-style">Start Quiz Now</a>
+    <main>
+        <!-- NEW HERO SECTION -->
+        <div id="hero-section" class="hero-section">
+            <h1>CREATE A QUIZ</h1>
+            <p>Build your own interactive quizzes with ease.</p>
+            <a href="#" id="show-creator-btn" class="button-style">Create Quiz</a>
+        </div>
+
+        <!-- CREATOR TOOLS (HIDDEN BY DEFAULT) -->
+        <div id="creator-section" style="display: none;">
+            <div class="container">
+                <h1>Quiz Creator</h1>
+                <p>Fill out the form below, or upload a formatted file. This tool now supports Anki-style .csv, tab-separated .txt, and 7-line block .txt formats.</p>
+
+                <div class="creator-block">
+                    <h3>Upload a Quiz File</h3>
+                    <input type="file" id="quiz-file-input" accept=".txt,.csv">
+                    <button id="create-from-file-btn">Create Link from File</button>
+                </div>
+                
+                <div class="creator-block">
+                    <h3>Or, Create Manually:</h3>
+                    <div id="questions-container"></div>
+                    <button id="add-question-btn">Add Another Question</button>
+                    <button id="generate-manual-btn">Create Link from Form</button>
+                </div>
+                
+                <div id="share-link-container">
+                    <h3>Your quiz is ready!</h3>
+                    <p>You can copy the link below to share it, or start the quiz yourself.</p>
+                    <input type="text" id="share-link" readonly>
+                    <a href="#" id="start-quiz-btn" class="button-style">Start Quiz Now</a>
+                </div>
             </div>
         </div>
     </main>
 
     <script>
-        // --- SIMPLIFIED AND CORRECTED MENU LOGIC ---
+        // --- Menu Toggle Logic ---
         const menuToggle = document.getElementById('menu-toggle');
         const navPanel = document.getElementById('nav-panel');
         const overlay = document.getElementById('overlay');
         const body = document.body;
 
-        menuToggle.addEventListener('click', () => {
-            const isVisible = navPanel.classList.contains('is-visible');
-            if (isVisible) {
-                // Hide menu
-                menuToggle.classList.remove('is-active');
-                navPanel.classList.remove('is-visible');
-                overlay.classList.remove('is-visible');
-                body.classList.remove('no-scroll');
-            } else {
-                // Show menu
-                menuToggle.classList.add('is-active');
-                navPanel.classList.add('is-visible');
-                overlay.classList.add('is-visible');
-                body.classList.add('no-scroll');
-            }
-        });
+        function closeMenu() {
+            navPanel.classList.remove('open');
+            overlay.classList.remove('open');
+            body.classList.remove('nav-open');
+        }
 
-        overlay.addEventListener('click', () => {
-            menuToggle.classList.remove('is-active');
-            navPanel.classList.remove('is-visible');
-            overlay.classList.remove('is-visible');
-            body.classList.remove('no-scroll');
+        menuToggle.addEventListener('click', () => {
+            navPanel.classList.toggle('open');
+            overlay.classList.toggle('open');
+            body.classList.toggle('nav-open');
+        });
+        
+        overlay.addEventListener('click', closeMenu);
+
+        // --- NEW: Logic to show creator tools ---
+        const heroSection = document.getElementById('hero-section');
+        const creatorSection = document.getElementById('creator-section');
+        const showCreatorBtn = document.getElementById('show-creator-btn');
+
+        showCreatorBtn.addEventListener('click', (e) => {
+            e.preventDefault(); // Prevent the link from jumping to the top of the page
+            heroSection.style.display = 'none';
+            creatorSection.style.display = 'block';
         });
 
         // --- Your existing creator page JavaScript ---
         const questionsContainer = document.getElementById('questions-container');
-        const addQuestionBtn = document.getElementById('add-question-btn');
-        // ... (The rest of your creator script) ...
-        const generateManualBtn = document.getElementById('generate-manual-btn'); const fileInput = document.getElementById('quiz-file-input'); const createFileBtn = document.getElementById('create-from-file-btn'); const linkContainer = document.getElementById('share-link-container'); const shareLinkInput = document.getElementById('share-link'); const startQuizBtn = document.getElementById('start-quiz-btn'); let questionCount = 0;
+        // ... (the rest of your script for creating quizzes is the same)
+        const addQuestionBtn = document.getElementById('add-question-btn'); const generateManualBtn = document.getElementById('generate-manual-btn'); const fileInput = document.getElementById('quiz-file-input'); const createFileBtn = document.getElementById('create-from-file-btn'); const linkContainer = document.getElementById('share-link-container'); const shareLinkInput = document.getElementById('share-link'); const startQuizBtn = document.getElementById('start-quiz-btn'); let questionCount = 0;
         function addQuestion() { questionCount++; const block = document.createElement('div'); block.innerHTML = `<h4>Question ${questionCount}</h4><input type="text" placeholder="Enter your question" class="question-title"><input type="text" placeholder="Answer A" class="answer-a"><input type="text" placeholder="Answer B" class="answer-b"><input type="text" placeholder="Answer C" class="answer-c"><input type="text" placeholder="Answer D" class="answer-d"><input type="text" placeholder="Correct Answer Letter (a, b, c, or d)" class="correct-answer" maxlength="1"><textarea placeholder="Optional: Enter explanation here" class="explanation"></textarea>`; questionsContainer.appendChild(block); }
         function getQuizDataFromForm() { const quizData = []; document.querySelectorAll('#questions-container .creator-block').forEach(q => { const questionTitle = q.querySelector('.question-title').value; const answerA = q.querySelector('.answer-a').value; const answerB = q.querySelector('.answer-b').value; const answerC = q.querySelector('.answer-c').value; const answerD = q.querySelector('.answer-d').value; const correctAnswer = q.querySelector('.correct-answer').value.toLowerCase(); const explanation = q.querySelector('.explanation').value.trim(); if (questionTitle && answerA && answerB && answerC && answerD && correctAnswer) { quizData.push({ question: questionTitle, answers: { a: answerA, b: answerB, c: answerC, d: answerD }, correctAnswer: correctAnswer, explanation: explanation }); } }); return quizData; }
         function handleFileUpload() { const file = fileInput.files[0]; if (!file) { alert('Please select a file.'); return; } const reader = new FileReader(); reader.onload = function(event) { const quizData = parseQuizText(event.target.result); if (quizData && quizData.length > 0) { generateShareLink(quizData); } else { alert('Could not parse the file. Please check the file format.'); } }; reader.readAsText(file); }
