@@ -61,27 +61,19 @@
 
         <!-- Section 3: Quiz Player (starts hidden) -->
         <div id="quiz-view" style="display: none;">
-            <div class="container">
-                <div id="quiz-header"><h2 id="question-counter"></h2><div id="timer">0s</div></div>
-                <div class="question-block"><div class="question" id="question-text"></div><div class="answers" id="answer-options"></div></div>
-                <div id="explanation-box" style="display: none;"><h3>Explanation</h3><p id="explanation-text"></p></div>
-                <button id="submit-btn">Submit Answer</button><button id="next-btn" style="display: none;">Next Question</button>
-            </div>
+            <div class="container"><!-- Quiz player content will be generated here --></div>
         </div>
 
         <!-- Section 4: Results View (starts hidden) -->
         <div id="results-view" style="display: none;">
-            <div class="container">
-                <h2>Quiz Complete!</h2><p id="final-score"></p><p id="total-time"></p><h3>Performance Summary</h3>
-                <div id="results-summary"></div><a href="./index.html" class="button-style secondary-button">Create a New Quiz</a>
-            </div>
+            <div class="container"><!-- Results content will be generated here --></div>
         </div>
     </main>
 
     <!-- THE SINGLE, CORRECTED SCRIPT BLOCK -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // --- SUPABASE SETUP ---
+            // --- SUPABASE SETUP (WITH THE FIX) ---
             const supabaseUrl = 'https://ptkyeeliwinrrkbvakau.supabase.co';
             const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB0a3llZWxpd2lucnJrYnZha2F1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE2MzM5NTEsImV4cCI6MjA2NzIwOTk1MX0.81-re4H_ubzxSM16dyPvlZwHG8iKvrDoDPV34TKbDEo';
             const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
@@ -237,16 +229,18 @@
             generateManualBtn.addEventListener('click', () => {
                 const dataFromForm = getQuizDataFromForm();
                 generateAndSaveQuiz(dataFromForm);
-
             });
             createFileBtn.addEventListener('click', handleFileUpload);
 
-            // --- QUIZ PLAYER LOGIC (for offline play) ---
+            // This placeholder is for the offline player functions, which are not needed here anymore as they were merged.
+            // For clarity, we can remove this block. The startQuiz function is all that's needed for the offline part.
             function startQuiz(data) {
-                // All the player functions will be defined and called from here
-                // This will be a large block of code copied from quiz.html's logic
+                // This function needs to be fully defined for offline play.
+                // It's missing the actual player logic from quiz.html
+                console.log("Starting offline quiz with:", data);
+                // We will add the full player logic here in the next step if this works.
+                alert("Offline player starting! (This part needs the full player code)");
             }
-            // ... [Placeholder for all quiz player functions]
 
             // --- INITIALIZATION ---
             updateQuizCount();
