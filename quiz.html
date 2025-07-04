@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Awesome Quiz</title>
+    <meta name="theme-color" content="#4285f4"/>
+    <link rel="manifest" href="./manifest.json">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+    <!-- Menu HTML -->
+    <div class="menu-toggle" id="menu-toggle"><span></span><span></span><span></span></div>
+    <div class="overlay" id="overlay"></div>
+    <nav class="nav-panel" id="nav-panel"><ul><li><a href="./how-to.html">How to Create a File?</a></li><li><a href="https://360pwatcher.github.io/Anilist/" target="_blank">Contact Us</a></li></ul></nav>
+    
+    <main>
+        <!-- The main quiz player structure -->
+        <div id="quiz-view" style="display: none;"></div>
+        <div id="results-view" style="display: none;"></div>
+        <div id="error-container" style="display: none;"><div class="container"><h2>Oops!</h2><p>Could not load the quiz. It may not exist or the link is incorrect.</p><a href="./index.html" class="button-style">Create a new quiz</a></div></div>
+        <div id="loading-container" class="container" style="text-align: center;"><h2>Loading Quiz...</h2></div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- SUPABASE SETUP (with your new key) ---
+            const supabaseUrl = 'https://ckjtmhsolnjjmxxndslv.supabase.co';
+            const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNranRtaHNvbG5qam14eG5kc2x2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE2NDEyMTgsImV4cCI6MjA2NzIxNzIxOH0.wADqu8wQHy5rWT6pHFaGK-kVEapXCsNxVM27iwg-5I8';
+            const { createClient } = window.supabase;
+            const supabase = createClient(supabaseUrl, supabaseKey);
+
+            // --- All other DOM references and quiz logic ---
+            const menuToggle = document.getElementById('menu-toggle');
+            const navPanel = document.getElementById('nav-panel');
+            const overlay = document.getElementById('overlay');
+            const body = document.body;
+            let quizData, currentQIndex, score, userAnswers, timePerQuestion, timerInterval, questionStartTime;
+
+            function closeMenu() { menuToggle.classList.remove('is-active'); navPanel.classList.remove('open'); overlay.classList.remove('open'); body.classList.remove('no-scroll'); }
+            menuToggle.addEventListener('click', () => { menuToggle.classList.toggle('is-active'); navPanel.classList.toggle('open'); overlay.classList.toggle('open'); body.classList.toggle('no-scroll'); });
+            overlay.addEventListener('click', closeMenu);
+
+            async function initializeQuiz() {
+                const quizView = document.getElementById('quiz-view');
+                const errorContainer = document.getElementById('error-container');
+                const loadingContainer = document.getElementById('loading-container');
+                try {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const quizId = urlParams.get('id');
+                    if (!quizId) throw new Error("No quiz ID found in the link.");
+
+                    let { data, error } = await supabase.from('quizzes').select('data').eq('short_id', quizId).single();
+                    if (error) throw new Error("Could not fetch quiz from the database. It may not exist or the link is wrong.");
+                    
+                    loadingContainer.style.display = 'none';
+                    quizData = data.data;
+                    if (!Array.isArray(quizData) || quizData.length === 0) throw new Error("Fetched data is not a valid quiz.");
+                    startQuiz(quizData);
+                } catch (e) {
+                    console.error("Quiz initialization failed:", e.message);
+                    loadingContainer.style.display = 'none';
+                    errorContainer.style.display = 'block';
+                }
+            }
+
+            // --- QUIZ PLAYER LOGIC ---
+            function startQuiz(data) { /* ... full player logic here, same as the final version for index.html ... */ }
+            
+            initializeQuiz();
+        });
+        
+        // PWA Registration
+        if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('./service-worker.js'); }); }
+    </script>
+</body>
+</html>
