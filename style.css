@@ -1,4 +1,4 @@
-/* Design-Inspired Stylesheet with Menu Fix */
+/* Design-Inspired Stylesheet with Responsive Hero Fix */
 :root {
     --bg-color: #f8f9fa;
     --card-bg-color: #ffffff;
@@ -44,11 +44,8 @@ body {
     margin: 0;
 }
 
-/* THE FIX: Give the main content a base stacking layer */
 main {
     padding: 20px;
-    position: relative;
-    z-index: 1;
 }
 
 .container {
@@ -58,14 +55,16 @@ main {
     margin-right: auto;
 }
 
-/* --- HERO SECTION STYLES --- */
+/* --- HERO SECTION STYLES (WITH THE RESPONSIVE FIX) --- */
 .hero-section {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     text-align: center;
-    min-height: 85vh;
+    /* Changed min-height to use viewport height, but with padding */
+    min-height: calc(100vh - 40px);
+    box-sizing: border-box; /* Ensures padding is included in height calculation */
 }
 .hero-section h1 {
     font-size: clamp(2.5rem, 8vw, 4.5rem);
@@ -90,7 +89,8 @@ main {
 .hero-image {
     max-width: 450px;
     width: 90%;
-    margin-top: 3rem;
+    /* Reduced top margin for better spacing on mobile */
+    margin-top: 2rem; 
 }
 
 /* --- All other styles remain the same --- */
@@ -98,58 +98,37 @@ h1, h2, h3 { color: var(--primary-color); margin-top: 0; }
 .creator-block, .question-block { background-color: var(--card-bg-color); padding: 20px; border-radius: 12px; margin-bottom: 25px; border: 1px solid var(--border-color); box-shadow: 0 4px 12px var(--shadow-color); }
 button, a.button-style { background-color: var(--primary-color); color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 600; margin-top: 10px; text-decoration: none; display: inline-block; transition: background-color 0.2s ease, transform 0.1s ease; }
 button:hover, a.button-style:hover { background-color: var(--primary-hover-color); transform: translateY(-1px); }
-/* ... (the rest of the styles are identical to the previous version) ... */
-
-/* --- MENU STYLES (WITH Z-INDEX) --- */
-.menu-toggle {
-    position: fixed;
-    top: 25px;
-    right: 25px;
-    width: 30px;
-    height: 25px;
-    cursor: pointer;
-    z-index: 1002; /* Highest layer */
-}
+button:disabled { background-color: var(--accent-color); cursor: not-allowed; transform: none; }
+a.secondary-button { background-color: var(--accent-color); }
+a.secondary-button:hover { background-color: var(--accent-hover-color); }
+.answers label { display: block; margin: 8px 0; padding: 15px; border-radius: 8px; border: 2px solid var(--border-color); cursor: pointer; transition: border-color 0.2s ease, background-color 0.2s ease; }
+.answers label:hover { border-color: var(--primary-color); background-color: var(--bg-color); }
+.answers label.correct { background-color: var(--success-bg-color); color: var(--success-text-color); border-color: var(--success-border-color); }
+.answers label.incorrect { background-color: var(--danger-bg-color); color: var(--danger-text-color); border-color: var(--danger-border-color); }
+#share-link-container { display: none; margin-top: 20px; padding: 20px; border-radius: 12px; background-color: var(--card-bg-color); border: 1px solid var(--border-color); }
+#quiz-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+#timer { font-size: 1.5em; font-weight: bold; color: var(--primary-color); background-color: var(--card-bg-color); padding: 5px 15px; border-radius: 8px; border: 1px solid var(--border-color); }
+.explanation-box { margin-top: 20px; padding: 15px; background-color: var(--info-bg-color); color: var(--info-text-color); border: 1px solid var(--info-border-color); border-radius: 8px; }
+.explanation-box h3 { margin-top: 0; color: var(--info-text-color); }
+#results-summary table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+#results-summary th, #results-summary td { padding: 12px; border: 1px solid var(--border-color); text-align: left; }
+#results-summary th { background-color: var(--card-bg-color); }
+.result-correct { color: var(--success-text-color); font-weight: bold; }
+.result-incorrect { color: var(--danger-text-color); font-weight: bold; }
+.prompt-box { background-color: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; padding: 15px; position: relative; }
+.prompt-box pre { white-space: pre-wrap; word-wrap: break-word; margin: 0; font-size: 0.9em; color: var(--secondary-text-color); }
+#copy-prompt-btn { position: absolute; top: 10px; right: 10px; }
+.back-button { margin-bottom: 20px; }
+.menu-toggle { position: fixed; top: 25px; right: 25px; width: 30px; height: 25px; cursor: pointer; z-index: 1002; display: flex; flex-direction: column; justify-content: space-between; }
 .menu-toggle span { display: block; width: 100%; height: 3px; background-color: var(--text-color); border-radius: 3px; transition: all 0.3s ease-in-out; }
 .menu-toggle.is-active span:nth-child(1) { transform: translateY(11px) rotate(45deg); }
 .menu-toggle.is-active span:nth-child(2) { opacity: 0; }
 .menu-toggle.is-active span:nth-child(3) { transform: translateY(-11px) rotate(-45deg); }
-
-.nav-panel {
-    position: fixed;
-    top: 0;
-    right: 0;
-    width: var(--nav-width);
-    height: 100%;
-    background-color: var(--card-bg-color);
-    box-shadow: -5px 0 15px rgba(0,0,0,0.2);
-    z-index: 1001; /* Layer above overlay */
-    transform: translateX(100%);
-    transition: transform 0.3s ease-in-out;
-}
-.nav-panel.open {
-    transform: translateX(0);
-}
+.nav-panel { position: fixed; top: 0; right: 0; width: var(--nav-width); height: 100%; background-color: var(--card-bg-color); box-shadow: -5px 0 15px rgba(0,0,0,0.2); z-index: 1001; padding: 80px 20px 20px; transform: translateX(100%); transition: transform 0.3s ease-in-out; }
+.nav-panel.open { transform: translateX(0); }
 .nav-panel ul { list-style: none; padding: 0; }
 .nav-panel ul li a { display: block; padding: 15px 10px; color: var(--text-color); text-decoration: none; font-size: 1.1em; font-weight: 500; border-radius: 8px; transition: background-color 0.2s; }
 .nav-panel ul li a:hover { background-color: var(--bg-color); }
-
-.overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    z-index: 1000; /* Layer above main content */
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
-}
-.overlay.open {
-    opacity: 1;
-    visibility: visible;
-}
-body.nav-open {
-    overflow: hidden;
-}
+.overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); z-index: 1000; opacity: 0; visibility: hidden; transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out; }
+.overlay.open { opacity: 1; visibility: visible; }
+body.nav-open { overflow: hidden; }
