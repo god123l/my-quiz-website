@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- START: MENU HTML -->
     <div class="menu-toggle" id="menu-toggle">
         <span></span>
         <span></span>
@@ -20,9 +19,7 @@
             <li><a href="https://360pwatcher.github.io/Anilist/" target="_blank">Contact Us</a></li>
         </ul>
     </nav>
-    <!-- END: MENU HTML -->
-
-    <!-- START: MAIN CONTENT WRAPPER -->
+    
     <main>
         <div class="container">
             <h1>Quiz Creator</h1>
@@ -49,123 +46,49 @@
             </div>
         </div>
     </main>
-    <!-- END: MAIN CONTENT WRAPPER -->
 
-    <!-- START: MENU JAVASCRIPT -->
     <script>
+        // --- SIMPLIFIED AND CORRECTED MENU LOGIC ---
         const menuToggle = document.getElementById('menu-toggle');
         const navPanel = document.getElementById('nav-panel');
         const overlay = document.getElementById('overlay');
         const body = document.body;
 
-        function closeMenu() {
-            navPanel.classList.remove('open');
-            overlay.classList.remove('open');
-            body.classList.remove('nav-open');
-        }
-
         menuToggle.addEventListener('click', () => {
-            navPanel.classList.toggle('open');
-            overlay.classList.toggle('open');
-            body.classList.toggle('nav-open');
+            const isVisible = navPanel.classList.contains('is-visible');
+            if (isVisible) {
+                // Hide menu
+                menuToggle.classList.remove('is-active');
+                navPanel.classList.remove('is-visible');
+                overlay.classList.remove('is-visible');
+                body.classList.remove('no-scroll');
+            } else {
+                // Show menu
+                menuToggle.classList.add('is-active');
+                navPanel.classList.add('is-visible');
+                overlay.classList.add('is-visible');
+                body.classList.add('no-scroll');
+            }
         });
-        
-        overlay.addEventListener('click', closeMenu);
-    </script>
-    <!-- END: MENU JAVASCRIPT -->
 
-    <!-- START: CREATOR PAGE JAVASCRIPT -->
-    <script>
+        overlay.addEventListener('click', () => {
+            menuToggle.classList.remove('is-active');
+            navPanel.classList.remove('is-visible');
+            overlay.classList.remove('is-visible');
+            body.classList.remove('no-scroll');
+        });
+
+        // --- Your existing creator page JavaScript ---
         const questionsContainer = document.getElementById('questions-container');
         const addQuestionBtn = document.getElementById('add-question-btn');
-        const generateManualBtn = document.getElementById('generate-manual-btn');
-        const fileInput = document.getElementById('quiz-file-input');
-        const createFileBtn = document.getElementById('create-from-file-btn');
-        const linkContainer = document.getElementById('share-link-container');
-        const shareLinkInput = document.getElementById('share-link');
-        const startQuizBtn = document.getElementById('start-quiz-btn');
-        let questionCount = 0;
-
-        function addQuestion() {
-            questionCount++;
-            const block = document.createElement('div');
-            block.innerHTML = `<h4>Question ${questionCount}</h4><input type="text" placeholder="Enter your question" class="question-title"><input type="text" placeholder="Answer A" class="answer-a"><input type="text" placeholder="Answer B" class="answer-b"><input type="text" placeholder="Answer C" class="answer-c"><input type="text" placeholder="Answer D" class="answer-d"><input type="text" placeholder="Correct Answer Letter (a, b, c, or d)" class="correct-answer" maxlength="1"><textarea placeholder="Optional: Enter explanation here" class="explanation"></textarea>`;
-            questionsContainer.appendChild(block);
-        }
-
-        function getQuizDataFromForm() {
-            const quizData = [];
-            document.querySelectorAll('#questions-container .creator-block').forEach(q => {
-                const questionTitle = q.querySelector('.question-title').value; const answerA = q.querySelector('.answer-a').value; const answerB = q.querySelector('.answer-b').value; const answerC = q.querySelector('.answer-c').value; const answerD = q.querySelector('.answer-d').value; const correctAnswer = q.querySelector('.correct-answer').value.toLowerCase(); const explanation = q.querySelector('.explanation').value.trim();
-                if (questionTitle && answerA && answerB && answerC && answerD && correctAnswer) { quizData.push({ question: questionTitle, answers: { a: answerA, b: answerB, c: answerC, d: answerD }, correctAnswer: correctAnswer, explanation: explanation }); }
-            });
-            return quizData;
-        }
-
-        function handleFileUpload() {
-            const file = fileInput.files[0]; if (!file) { alert('Please select a file.'); return; }
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                const quizData = parseQuizText(event.target.result);
-                if (quizData && quizData.length > 0) { generateShareLink(quizData); } else { alert('Could not parse the file. Please check the file format.'); }
-            };
-            reader.readAsText(file);
-        }
-
-        function parseQuizText(text) {
-            const quizData = [];
-            const trimmedText = text.trim();
-            if (trimmedText.startsWith('"Question"')) {
-                const lines = trimmedText.split('\n');
-                const csvRegex = /"([^"]*)"/g;
-                for (let i = 1; i < lines.length; i++) {
-                    const fields = Array.from(lines[i].matchAll(csvRegex), m => m[1]);
-                    if (fields.length < 7) continue;
-                    quizData.push({ question: fields[0], answers: { a: fields[1], b: fields[2], c: fields[3], d: fields[4] }, correctAnswer: fields[5].trim().toLowerCase(), explanation: fields[6] });
-                }
-            } else if (trimmedText.includes('\t')) {
-                const lines = trimmedText.split('\n');
-                for (const line of lines) {
-                    if (line.startsWith('#') || !line.trim()) continue;
-                    const fields = line.split('\t');
-                    if (fields.length < 7) continue;
-                    quizData.push({ question: fields[0], answers: { a: fields[1], b: fields[2], c: fields[3], d: fields[4] }, correctAnswer: fields[5].trim().toLowerCase(), explanation: fields[6] });
-                }
-            } else {
-                const questionBlocks = trimmedText.split(/\n\s*\n/);
-                for (const block of questionBlocks) {
-                    const lines = block.split('\n'); if (lines.length < 6) continue;
-                    const explanationLine = lines[6] || 'EXPLANATION:';
-                    const explanation = explanationLine.startsWith('EXPLANATION:') ? explanationLine.substring(12).trim() : '';
-                    quizData.push({ question: lines[0].trim(), answers: { a: lines[1].trim(), b: lines[2].trim(), c: lines[3].trim(), d: lines[4].trim() }, correctAnswer: lines[5].substring(8).trim().toLowerCase(), explanation: explanation });
-                }
-            }
-            return quizData;
-        }
-        
-        function generateShareLink(quizData) {
-            if (!quizData || quizData.length === 0) { alert("No valid questions found."); return; }
-            try {
-                const quizKey = `quiz_${Date.now()}`;
-                const jsonString = JSON.stringify(quizData);
-                localStorage.setItem(quizKey, jsonString);
-                const baseUrl = window.location.href.replace('index.html', '').replace(/\/$/, '');
-                const quizUrl = `${baseUrl}/quiz.html?key=${quizKey}`;
-                shareLinkInput.value = quizUrl;
-                startQuizBtn.href = quizUrl;
-                linkContainer.style.display = 'block';
-                shareLinkInput.select();
-            } catch (error) {
-                alert("An error occurred while creating the link. Your browser may be in private mode or storage might be full.");
-                console.error("Link generation failed:", error);
-            }
-        }
-
-        addQuestionBtn.addEventListener('click', addQuestion);
-        generateManualBtn.addEventListener('click', () => { generateShareLink(getQuizDataFromForm()); });
-        createFileBtn.addEventListener('click', handleFileUpload);
-        addQuestion();
+        // ... (The rest of your creator script) ...
+        const generateManualBtn = document.getElementById('generate-manual-btn'); const fileInput = document.getElementById('quiz-file-input'); const createFileBtn = document.getElementById('create-from-file-btn'); const linkContainer = document.getElementById('share-link-container'); const shareLinkInput = document.getElementById('share-link'); const startQuizBtn = document.getElementById('start-quiz-btn'); let questionCount = 0;
+        function addQuestion() { questionCount++; const block = document.createElement('div'); block.innerHTML = `<h4>Question ${questionCount}</h4><input type="text" placeholder="Enter your question" class="question-title"><input type="text" placeholder="Answer A" class="answer-a"><input type="text" placeholder="Answer B" class="answer-b"><input type="text" placeholder="Answer C" class="answer-c"><input type="text" placeholder="Answer D" class="answer-d"><input type="text" placeholder="Correct Answer Letter (a, b, c, or d)" class="correct-answer" maxlength="1"><textarea placeholder="Optional: Enter explanation here" class="explanation"></textarea>`; questionsContainer.appendChild(block); }
+        function getQuizDataFromForm() { const quizData = []; document.querySelectorAll('#questions-container .creator-block').forEach(q => { const questionTitle = q.querySelector('.question-title').value; const answerA = q.querySelector('.answer-a').value; const answerB = q.querySelector('.answer-b').value; const answerC = q.querySelector('.answer-c').value; const answerD = q.querySelector('.answer-d').value; const correctAnswer = q.querySelector('.correct-answer').value.toLowerCase(); const explanation = q.querySelector('.explanation').value.trim(); if (questionTitle && answerA && answerB && answerC && answerD && correctAnswer) { quizData.push({ question: questionTitle, answers: { a: answerA, b: answerB, c: answerC, d: answerD }, correctAnswer: correctAnswer, explanation: explanation }); } }); return quizData; }
+        function handleFileUpload() { const file = fileInput.files[0]; if (!file) { alert('Please select a file.'); return; } const reader = new FileReader(); reader.onload = function(event) { const quizData = parseQuizText(event.target.result); if (quizData && quizData.length > 0) { generateShareLink(quizData); } else { alert('Could not parse the file. Please check the file format.'); } }; reader.readAsText(file); }
+        function parseQuizText(text) { const quizData = []; const trimmedText = text.trim(); if (trimmedText.startsWith('"Question"')) { const lines = trimmedText.split('\n'); const csvRegex = /"([^"]*)"/g; for (let i = 1; i < lines.length; i++) { const fields = Array.from(lines[i].matchAll(csvRegex), m => m[1]); if (fields.length < 7) continue; quizData.push({ question: fields[0], answers: { a: fields[1], b: fields[2], c: fields[3], d: fields[4] }, correctAnswer: fields[5].trim().toLowerCase(), explanation: fields[6] }); } } else if (trimmedText.includes('\t')) { const lines = trimmedText.split('\n'); for (const line of lines) { if (line.startsWith('#') || !line.trim()) continue; const fields = line.split('\t'); if (fields.length < 7) continue; quizData.push({ question: fields[0], answers: { a: fields[1], b: fields[2], c: fields[3], d: fields[4] }, correctAnswer: fields[5].trim().toLowerCase(), explanation: fields[6] }); } } else { const questionBlocks = trimmedText.split(/\n\s*\n/); for (const block of questionBlocks) { const lines = block.split('\n'); if (lines.length < 6) continue; const explanationLine = lines[6] || 'EXPLANATION:'; const explanation = explanationLine.startsWith('EXPLANATION:') ? explanationLine.substring(12).trim() : ''; quizData.push({ question: lines[0].trim(), answers: { a: lines[1].trim(), b: lines[2].trim(), c: lines[3].trim(), d: lines[4].trim() }, correctAnswer: lines[5].substring(8).trim().toLowerCase(), explanation: explanation }); } } return quizData; }
+        function generateShareLink(quizData) { if (!quizData || quizData.length === 0) { alert("No valid questions found."); return; } try { const quizKey = `quiz_${Date.now()}`; const jsonString = JSON.stringify(quizData); localStorage.setItem(quizKey, jsonString); const baseUrl = window.location.href.replace('index.html', '').replace(/\/$/, ''); const quizUrl = `${baseUrl}/quiz.html?key=${quizKey}`; shareLinkInput.value = quizUrl; startQuizBtn.href = quizUrl; linkContainer.style.display = 'block'; shareLinkInput.select(); } catch (error) { alert("An error occurred while creating the link. Your browser may be in private mode or storage might be full."); console.error("Link generation failed:", error); } }
+        addQuestionBtn.addEventListener('click', addQuestion); generateManualBtn.addEventListener('click', () => { generateShareLink(getQuizDataFromForm()); }); createFileBtn.addEventListener('click', handleFileUpload); addQuestion();
     </script>
-    <!-- END: CREATOR PAGE JAVASCRIPT -->
 </body>
 </html>
