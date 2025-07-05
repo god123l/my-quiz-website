@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Creator</title>
+    <meta name="theme-color" content="#4285f4"/>
+    <link rel="manifest" href="./manifest.json">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.6.347/pdf.min.js"></script>
+    <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+    <div class="menu-toggle" id="menu-toggle"><span></span><span></span><span></span></div>
+    <div class="overlay" id="overlay"></div>
+    <nav class="nav-panel" id="nav-panel"><ul><li><a href="./how-to.html">How to Create a File?</a></li><li><a href="https://360pwatcher.github.io/Anilist/" target="_blank">Contact Us</a></li></ul></nav>
+    <main>
+        <div id="hero-section" class="hero-section">
+            <div class="hero-content"><h1>CREATE A QUIZ</h1><p>Build your own interactive quizzes with ease.</p><a href="#" id="show-creator-btn" class="button-style">Create Quiz</a></div>
+            <img src="./hero-image.svg" alt="Quiz illustration" class="hero-image">
+            <div id="quiz-counter-display" style="margin-top: 2rem; color: var(--secondary-text-color);"><span id="total-quizzes">...</span> quizzes created so far!</div>
+        </div>
+        <div id="creator-section" style="display: none;">
+            <div class="container">
+                <h1>Quiz Creator</h1><p>Use any of the methods below to generate your quiz.</p>
+                <div class="creator-block">
+                    <h3>Generate with AI (Recommended)</h3>
+                    <p>Provide your Google Gemini API key and a document to automatically create a quiz. <a href="how-to.html">How to get a key?</a></p>
+                    <input type="password" id="api-key-input" placeholder="Paste your Gemini API Key here">
+                    <input type="number" id="ai-num-questions-input" min="1" max="50" value="10" placeholder="Number of questions">
+                    <input type="file" id="ai-file-input" accept=".txt,.pdf">
+                    <button id="ai-generate-btn">Generate Quiz with AI</button>
+                    <div id="ai-share-link-container" class="share-link-container" style="display: none;"></div>
+                </div>
+                <div class="creator-block"><h3>Upload a Pre-formatted File</h3><input type="file" id="quiz-file-input" accept=".txt,.csv"><button id="create-from-file-btn">Create Link from File</button><div id="file-share-link-container" class="share-link-container" style="display: none;"></div></div>
+                <div class="creator-block"><h3>Or, Create Manually:</h3><div id="questions-container"></div><button id="add-question-btn">Add Another Question</button><button id="generate-manual-btn">Create Link from Form</button><div id="manual-share-link-container" class="share-link-container" style="display: none;"></div></div>
+            </div>
+        </div>
+        <div id="quiz-view" style="display: none;"></div>
+        <div id="results-view" style="display: none;"></div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            function mainApp() {
+                const supabaseUrl = 'https://ckjtmhsolnjjmxxndslv.supabase.co';
+                const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNranRtaHNvbG5qam14eG5kc2x2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE2NDEyMTgsImV4cCI6MjA2NzIxNzIxOH0.wADqu8wQHy5rWT6pHFaGK-kVEapXCsNxVM27iwg-5I8';
+                const { createClient } = window.supabase;
+                const supabase = createClient(supabaseUrl, supabaseKey);
+
+                const heroSection = document.getElementById('hero-section'); const creatorSection = document.getElementById('creator-section'); const quizView = document.getElementById('quiz-view'); const resultsView = document.getElementById('results-view'); const showCreatorBtn = document.getElementById('show-creator-btn'); const questionsContainer = document.getElementById('questions-container'); const addQuestionBtn = document.getElementById('add-question-btn'); const generateManualBtn = document.getElementById('generate-manual-btn'); const fileInput = document.getElementById('quiz-file-input'); const createFileBtn = document.getElementById('create-from-file-btn'); const menuToggle = document.getElementById('menu-toggle'); const navPanel = document.getElementById('nav-panel'); const overlay = document.getElementById('overlay'); const body = document.body; const quizCounterDisplay = document.getElementById('total-quizzes'); const aiApiKeyInput = document.getElementById('api-key-input'); const aiNumQuestionsInput = document.getElementById('ai-num-questions-input'); const aiFileInput = document.getElementById('ai-file-input'); const aiGenerateBtn = document.getElementById('ai-generate-btn'); const aiShareContainer = document.getElementById('ai-share-link-container'); const fileShareContainer = document.getElementById('file-share-link-container'); const manualShareContainer = document.getElementById('manual-share-link-container');
+                let quizDataForOfflinePlay = [];
+                
+                const closeMenu = () => { menuToggle.classList.remove('is-active'); navPanel.classList.remove('open'); overlay.classList.remove('open'); body.classList.remove('no-scroll'); };
+                const showCreatorView = () => { heroSection.style.display = 'none'; creatorSection.style.display = 'block'; };
+                const updateQuizCount = async () => { try { const { count, error } = await supabase.from('quizzes').select('*', { count: 'exact', head: true }); if (error) throw error; quizCounterDisplay.textContent = count; } catch (error) { console.error("Error fetching quiz count:", error.message); quizCounterDisplay.textContent = 'N/A'; } };
+                const generateQuizWithAI = async () => {
+                    const apiKey = aiApiKeyInput.value.trim(); const file = aiFileInput.files[0]; const numQuestions = aiNumQuestionsInput.value || 10;
+                    if (!apiKey) { alert('Please enter your Gemini API key.'); return; } if (!file) { alert('Please select a document to upload.'); return; }
+                    aiGenerateBtn.disabled = true; aiGenerateBtn.textContent = 'Reading & Generating...';
+                    try {
+                        let documentText = '';
+                        if (file.type === 'application/pdf') {
+                            pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.6.347/pdf.worker.min.js`;
+                            const fileReader = new FileReader();
+                            fileReader.onload = async function() { const typedarray = new Uint8Array(this.result); const pdf = await pdfjsLib.getDocument(typedarray).promise; for (let i = 1; i <= pdf.numPages; i++) { const page = await pdf.getPage(i); const textContent = await page.getTextContent(); documentText += textContent.items.map(item => item.str).join(' '); } await callGeminiAPI(apiKey, documentText, numQuestions); };
+                            fileReader.readAsArrayBuffer(file);
+                        } else { documentText = await file.text(); documentText = documentText.slice(0, 30000); await callGeminiAPI(apiKey, documentText, numQuestions); }
+                    } catch (error) { console.error("Error processing file:", error); alert("Failed to read the document."); resetAIGeneratorButton(); }
+                };
+
+                // --- START OF FIXED CODE ---
+                const callGeminiAPI = async (apiKey, documentText, numQuestions) => {
+                    // A better prompt that focuses on conversion, not extraction.
+                    const prompt = `
+                        Your task is to act as a data conversion tool.
+                        Scan the entire document provided below. For every single MCQ question you find, convert it into a strict 7-line format.
+                        - You MUST NOT change, add, or remove any words from the original question or its options.
+                        - For any mathematical notation, enclose it in LaTeX delimiters like \\(...\\).
+                        - If a question does not have a clear, single-letter answer (A, B, C, or D) available in the source text, OMIT the entire question.
+                        - Each question block must be separated from the next by a single blank line.
+
+                        REQUIRED 7-LINE FORMAT PER QUESTION:
+                        1. [The full question text, exactly as it appears in the source]
+                        2. [The full text for option A, exactly as it appears]
+                        3. [The full text for option B, exactly as it appears]
+                        4. [The full text for option C, exactly as it appears]
+                        5. [The full text for option D, exactly as it appears]
+                        6. ANSWER: [The single, correct, lowercase letter e.g., 'a', 'b', 'c', or 'd']
+                        7. EXPLANATION: [The explanation, if available. If not, leave this line blank after the colon.]
+
+                        ---
+                        CONVERT THE FOLLOWING TEXT:
+                        ${documentText}
+                    `;
+
+                    try {
+                        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+                        });
+                        if (!response.ok) {
+                            const errorData = await response.json();
+                            throw new Error(errorData.error.message || `HTTP error! Status: ${response.status}`);
+                        }
+                        const result = await response.json();
+                        if (result.candidates && result.candidates.length > 0) {
+                            const generatedText = result.candidates[0].content.parts[0].text;
+                            
+                            // Call the NEW parseQuizText function
+                            const generatedQuizData = parseQuizText(generatedText);
+                            
+                            if (generatedQuizData.length > 0) {
+                                await generateAndSaveQuiz(generatedQuizData, aiShareContainer);
+                            } else {
+                                alert("The AI couldn't generate a valid quiz from this document. The document might not contain clear MCQ questions.");
+                            }
+                        } else {
+                            let errorMessage = "AI response was empty.";
+                            if (result.promptFeedback && result.promptFeedback.blockReason) {
+                                errorMessage += ` Reason: ${result.promptFeedback.blockReason}`;
+                            }
+                            throw new Error(errorMessage);
+                        }
+                    } catch (error) {
+                        console.error("Gemini API error:", error);
+                        alert(`An error occurred with the AI API: ${error.message}`);
+                    } finally {
+                        resetAIGeneratorButton();
+                    }
+                };
+
+                const parseQuizText = (text) => {
+                    const data = [];
+                    const trimmedText = text.trim();
+
+                    // Check for CSV or TSV formats first (existing logic)
+                    if (trimmedText.startsWith('"Question"')) {
+                        const lines = trimmedText.split('\n');
+                        const csvRegex = /"([^"]*)"/g;
+                        for (let i = 1; i < lines.length; i++) {
+                            const fields = Array.from(lines[i].matchAll(csvRegex), m => m[1]);
+                            if (fields.length < 7) continue;
+                            data.push({ question: fields[0], answers: { a: fields[1], b: fields[2], c: fields[3], d: fields[4] }, correctAnswer: fields[5].trim().toLowerCase(), explanation: fields[6] });
+                        }
+                        return data; // Return early
+                    } else if (trimmedText.includes('\t')) {
+                        const lines = trimmedText.split('\n');
+                        for (const line of lines) {
+                            if (line.startsWith('#') || !line.trim()) continue;
+                            const fields = line.split('\t');
+                            if (fields.length < 7) continue;
+                            data.push({ question: fields[0], answers: { a: fields[1], b: fields[2], c: fields[3], d: fields[4] }, correctAnswer: fields[5].trim().toLowerCase(), explanation: fields[6] });
+                        }
+                        return data; // Return early
+                    }
+
+                    // --- NEW ROBUST PARSER FOR AI-GENERATED TEXT ---
+                    const questionBlocks = trimmedText.split(/\n\s*\n/); // Split by one or more blank lines
+
+                    for (const block of questionBlocks) {
+                        const lines = block.split('\n').filter(line => line.trim() !== ''); // Split block into lines and remove empty ones
+                        if (lines.length < 5) continue; // Need at least a question, 4 options, and an answer
+
+                        let question = '';
+                        const answers = {};
+                        let correctAnswer = '';
+                        let explanation = '';
+
+                        const answerRegex = /^\s*ANSWER:\s*([a-d])\s*$/i;
+                        const explanationRegex = /^\s*EXPLANATION:(.*)$/i;
+
+                        // The first line is almost always the question
+                        question = lines[0].replace(/^\s*\d+\.\s*/, '').trim(); // Remove "1. " style numbering
+
+                        let optionKey = 'a'; // Start with option 'a'
+                        for (let i = 1; i < lines.length; i++) {
+                            const line = lines[i].trim();
+                            const answerMatch = line.match(answerRegex);
+                            const explanationMatch = line.match(explanationRegex);
+                            
+                            if (answerMatch) {
+                                correctAnswer = answerMatch[1].toLowerCase();
+                            } else if (explanationMatch) {
+                                explanation = explanationMatch[1].trim();
+                            } else if (optionKey <= 'd') {
+                                // Assume it's an option.
+                                const optionText = line.replace(/^[a-d][\.\)]\s*/, '').trim();
+                                answers[optionKey] = optionText;
+                                // Increment the option key for the next one
+                                optionKey = String.fromCharCode(optionKey.charCodeAt(0) + 1);
+                            }
+                        }
+                        
+                        // Only add the question if it's complete
+                        if (question && correctAnswer && Object.keys(answers).length >= 4) {
+                            data.push({
+                                question: question,
+                                answers: answers,
+                                correctAnswer: correctAnswer,
+                                explanation: explanation
+                            });
+                        }
+                    }
+                    return data;
+                };
+                // --- END OF FIXED CODE ---
+
+
+                const resetAIGeneratorButton = () => { aiGenerateBtn.disabled = false; aiGenerateBtn.textContent = 'Generate Quiz with AI'; };
+                const saveApiKey = () => { localStorage.setItem('geminiApiKey', aiApiKeyInput.value); };
+                const loadApiKey = () => { const savedKey = localStorage.getItem('geminiApiKey'); if(savedKey) aiApiKeyInput.value = savedKey; };
+                let questionCount = 0;
+                const addQuestion = () => { questionCount++; const block = document.createElement('div'); block.className = 'manual-question-block'; block.innerHTML = `<h4>Question ${questionCount}</h4><input type="text" placeholder="Enter your question" class="question-title"><input type="text" placeholder="Answer A" class="answer-a"><input type="text" placeholder="Answer B" class="answer-b"><input type="text" placeholder="Answer C" class="answer-c"><input type="text" placeholder="Answer D" class="answer-d"><input type="text" placeholder="Correct Answer Letter (a, b, c, or d)" class="correct-answer" maxlength="1"><textarea placeholder="Optional: Enter explanation here" class="explanation"></textarea>`; questionsContainer.appendChild(block); };
+                const getQuizDataFromForm = () => { const data = []; document.querySelectorAll('.manual-question-block').forEach(qBlock => { const questionTitle = qBlock.querySelector('.question-title').value; const answerA = qBlock.querySelector('.answer-a').value; const answerB = qBlock.querySelector('.answer-b').value; const answerC = qBlock.querySelector('.answer-c').value; const answerD = qBlock.querySelector('.answer-d').value; const correctAnswer = qBlock.querySelector('.correct-answer').value.toLowerCase(); const explanation = qBlock.querySelector('.explanation').value.trim(); if (questionTitle && answerA && answerB && answerC && answerD && correctAnswer) { data.push({ question: questionTitle, answers: { a: answerA, b: answerB, c: answerC, d: answerD }, correctAnswer: correctAnswer, explanation: explanation }); } }); return data; };
+                const handleFileUpload = () => { const file = fileInput.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = (e) => { const data = parseQuizText(e.target.result); if(data.length > 0) generateAndSaveQuiz(data, fileShareContainer); else alert('Could not parse file.'); }; reader.readAsText(file); };
+                
+                const generateAndSaveQuiz = async (data, container) => { quizDataForOfflinePlay = data; if (!data || data.length === 0) { alert("No valid questions found."); return; } await updateQuizCount(); const quizId = Date.now().toString(36) + Math.random().toString(36).substring(2, 7); container.style.display = 'block'; container.innerHTML = `<h3>Your quiz is ready!</h3><p>Copy the link to share, or start the quiz directly.</p><input type="text" id="share-link-${quizId}" value="Saving to cloud..." readonly><a href="#" id="start-quiz-btn-${quizId}" class="button-style">Start Quiz Now</a>`; const newShareLinkInput = document.getElementById(`share-link-${quizId}`); const newStartQuizBtn = document.getElementById(`start-quiz-btn-${quizId}`); newStartQuizBtn.disabled = true; newStartQuizBtn.addEventListener('click', (e) => { e.preventDefault(); startOfflineQuiz(quizDataForOfflinePlay); }); try { const { error } = await supabase.from('quizzes').insert({ short_id: quizId, data: data }); if (error) { throw error; } const baseUrl = window.location.href.replace('index.html', '').replace(/\/$/, ''); const shareableUrl = `${baseUrl}/quiz.html?id=${quizId}`; newShareLinkInput.value = shareableUrl; } catch (error) { console.error('Supabase save error:', error.message); newShareLinkInput.value = 'Error: Could not save quiz online.'; alert(`Failed to save quiz online. 'Start Quiz Now' still works.\n\nError: ${error.message}`); } finally { newStartQuizBtn.disabled = false; } };
+                
+                let currentQIndex, score, userAnswers, timePerQuestion, timerInterval, questionStartTime;
+                const startOfflineQuiz = (data) => { if (data && data.length > 0) { creatorSection.style.display = 'none'; heroSection.style.display = 'none'; startQuizPlayer(data); } else { alert("Please generate a quiz first before starting."); } };
+                const startQuizPlayer = (data) => { quizDataForOfflinePlay = data; currentQIndex = 0; score = 0; userAnswers = []; timePerQuestion = []; quizView.style.display = 'block'; resultsView.style.display = 'none'; quizView.innerHTML = `<div class="container"><div id="quiz-header"><h2 id="question-counter"></h2><div id="timer">0s</div></div><div class="question-block"><div class="question" id="question-text"></div><div class="answers" id="answer-options"></div></div><div id="explanation-box" style="display: none;"><h3>Explanation</h3><p id="explanation-text"></p></div><button id="submit-btn">Submit Answer</button><button id="next-btn" style="display: none;">Next Question</button></div>`; attachPlayerListeners(); displayQuestion(); };
+                const attachPlayerListeners = () => { quizView.addEventListener('click', (e) => { if (e.target.id === 'submit-btn') handleSubmit(); if (e.target.id === 'next-btn') handleNext(); }); };
+                const startTimer = () => { const timerDisplay = document.getElementById('timer'); questionStartTime = Date.now(); timerInterval = setInterval(() => { timerDisplay.textContent = `${Math.floor((Date.now() - questionStartTime) / 1000)}s`; }, 1000); };
+                const stopTimer = () => { clearInterval(timerInterval); timePerQuestion.push(Math.round((Date.now() - questionStartTime) / 1000)); };
+                const displayQuestion = () => { const qCounter = document.getElementById('question-counter'); const qText = document.getElementById('question-text'); const answerOpts = document.getElementById('answer-options'); document.getElementById('submit-btn').style.display = 'inline-block'; document.getElementById('next-btn').style.display = 'none'; answerOpts.innerHTML = ''; const currentQ = quizDataForOfflinePlay[currentQIndex]; qCounter.textContent = `Question ${currentQIndex + 1} of ${quizDataForOfflinePlay.length}`; qText.textContent = currentQ.question; for (const letter in currentQ.answers) { const label = document.createElement('label'); const answerText = currentQ.answers[letter]; label.innerHTML = `<input type="radio" name="answer" value="${letter}">`; label.appendChild(document.createTextNode(` ${letter.toUpperCase()}: ${answerText}`)); answerOpts.appendChild(label); } if (window.MathJax) { MathJax.typeset(); } startTimer(); };
+                const handleSubmit = () => { const answerOpts = document.getElementById('answer-options'); const selectedRadio = answerOpts.querySelector('input[name="answer"]:checked'); if (!selectedRadio) { alert('Please select an answer!'); return; } stopTimer(); const userAnswer = selectedRadio.value; const currentQ = quizDataForOfflinePlay[currentQIndex]; userAnswers.push(userAnswer); answerOpts.querySelectorAll('input').forEach(input => input.disabled = true); const correctRadio = answerOpts.querySelector(`input[value="${currentQ.correctAnswer}"]`);
+const correctLabel = correctRadio ? correctRadio.parentElement : null;
+if (correctLabel) correctLabel.classList.add('correct'); if (userAnswer === currentQ.correctAnswer) { score++; } else { selectedRadio.parentElement.classList.add('incorrect'); } const explanationBox = document.getElementById('explanation-box'); const explanationText = document.getElementById('explanation-text'); if (currentQ.explanation) { explanationText.textContent = currentQ.explanation; explanationBox.style.display = 'block'; if (window.MathJax) { MathJax.typesetPromise([explanationBox]).catch((err) => console.log(err.message)); } } document.getElementById('submit-btn').style.display = 'none'; const nextBtn = document.getElementById('next-btn'); nextBtn.style.display = 'inline-block'; if (currentQIndex === quizDataForOfflinePlay.length - 1) { nextBtn.textContent = 'Show Results'; } };
+                const handleNext = () => { currentQIndex++; if (currentQIndex < quizDataForOfflinePlay.length) { displayQuestion(); } else { displayResults(); } };
+                const displayResults = () => { quizView.style.display = 'none'; resultsView.style.display = 'block'; resultsView.innerHTML = `<div class="container"><h2>Quiz Complete!</h2><p id="final-score"></p><p id="total-time"></p><h3>Performance Summary</h3><div id="results-summary"></div><a href="./index.html" class="button-style secondary-button">Create a New Quiz</a></div>`; const finalScoreEl = document.getElementById('final-score'); const totalTimeEl = document.getElementById('total-time'); const summaryEl = document.getElementById('results-summary'); finalScoreEl.textContent = `Final Score: ${score} out of ${quizDataForOfflinePlay.length}`; const totalTime = timePerQuestion.reduce((a, b) => a + b, 0); totalTimeEl.textContent = `Total Time: ${totalTime} seconds`; let summaryHtml = '<table><tr><th>#</th><th>Question</th><th>Your Answer</th><th>Time</th></tr>'; quizDataForOfflinePlay.forEach((q, i) => { const isCorrect = userAnswers[i] === q.correctAnswer; const statusClass = isCorrect ? 'result-correct' : 'result-incorrect'; const statusSymbol = isCorrect ? '✔' : '✖'; const userAnswerText = `${userAnswers[i] ? userAnswers[i].toUpperCase() : 'N/A'}: ${userAnswers[i] ? q.answers[userAnswers[i]] : 'No Answer'}`; const correctAnswerText = `Correct: ${q.correctAnswer.toUpperCase()}: ${q.answers[q.correctAnswer]}`; summaryHtml += `<tr><td class="${statusClass}">${statusSymbol}</td><td>${q.question}</td><td>${userAnswerText} <br><small class="${statusClass}">${isCorrect ? '' : correctAnswerText}</small></td><td>${timePerQuestion[i]}s</td></tr>`; }); summaryHtml += '</table>'; document.getElementById('results-summary').innerHTML = summaryHtml; if (window.MathJax) { MathJax.typesetPromise([resultsView]).catch((err) => console.log(err.message)); } };
+                
+                menuToggle.addEventListener('click', () => { menuToggle.classList.toggle('is-active'); navPanel.classList.toggle('open'); overlay.classList.toggle('open'); body.classList.toggle('no-scroll'); });
+                overlay.addEventListener('click', closeMenu);
+                showCreatorBtn.addEventListener('click', (e) => { e.preventDefault(); showCreatorView(); });
+                addQuestionBtn.addEventListener('click', addQuestion);
+                generateManualBtn.addEventListener('click', () => { const data = getQuizDataFromForm(); if(data.length > 0) generateAndSaveQuiz(data, manualShareContainer); else alert("Please fill out at least one question completely."); });
+                createFileBtn.addEventListener('click', handleFileUpload);
+                aiGenerateBtn.addEventListener('click', generateQuizWithAI);
+                aiApiKeyInput.addEventListener('change', saveApiKey);
+                
+                updateQuizCount();
+                addQuestion();
+                loadApiKey();
+            }
+
+            function waitForLibs() { if (window.supabase && window.pdfjsLib) { mainApp(); } else { setTimeout(waitForLibs, 100); } }
+            waitForLibs();
+        });
+        if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('./service-worker.js'); }); }
+    </script>
+</body>
+</html>
